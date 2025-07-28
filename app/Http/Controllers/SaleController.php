@@ -56,16 +56,15 @@ class SaleController extends Controller
 
         DB::beginTransaction();
         try {
-            $invoice = 'INV-' . now()->format('YmdHis');
             $sale = Sale::create([
-                'invoice_number' => $request->invoice_number,
+                'invoice_number' => $validated['invoice_number'],
                 'sale_date' => now(),
                 'total_price' => 0,
             ]);
 
             $total = 0;
 
-            foreach ($request->items as $input) {
+            foreach ($validated['items'] as $input) {
                 $item = Item::findOrFail($input['item_id']);
                 $subtotal = $item->price * $input['qty'];
                 SaleItem::create([
