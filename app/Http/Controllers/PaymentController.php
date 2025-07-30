@@ -6,14 +6,22 @@ use App\Models\Sale;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
 
-    public function index()
+    public function index(Request $request)
     {
-        $payments = Payment::with('sale')->get();
+        $query = Payment::with('sale');
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $payments = $query->latest()->get();
         return view('payments.index', compact('payments'));
     }
 

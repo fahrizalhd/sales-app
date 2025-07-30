@@ -1,6 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold text-gray-800 leading-tight">User List</h2>
+        <x-breadcrumb :menus="[
+        ['label' => 'Users'],
+        ['label' => 'Users List']
+    ]" />
     </x-slot>
 
     <div class="py-6">

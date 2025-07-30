@@ -1,6 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold text-gray-800">Sale Detail</h2>
+        <x-breadcrumb :menus="[
+        ['label' => 'Sales', 'url' => route('sales.index')],
+        ['label' => 'Detail Sale']
+    ]" />
     </x-slot>
 
     <div class="max-w-3xl mx-auto mt-6 bg-white p-6 rounded shadow">
@@ -32,16 +35,16 @@
                 @foreach ($sale->saleItems as $saleItem)
                 <tr>
                     <td class="border px-4 py-2">{{ $saleItem->item->name }}</td>
-                    <td class="border px-4 py-2 text-right">{{ number_format($saleItem->price, 2) }}</td>
+                    <td class="border px-4 py-2 text-right">Rp{{ number_format($saleItem->price, 2) }}</td>
                     <td class="border px-4 py-2 text-center">{{ $saleItem->qty }}</td>
-                    <td class="border px-4 py-2 text-right">{{ number_format($saleItem->subtotal, 2) }}</td>
+                    <td class="border px-4 py-2 text-right">Rp{{ number_format($saleItem->subtotal, 2) }}</td>
                 </tr>
                 @endforeach
             </tbody>
             <tfoot>
                 <tr class="bg-gray-50 font-semibold">
                     <td colspan="3" class="border px-4 py-2 text-right">Total</td>
-                    <td class="border px-4 py-2 text-right">{{ number_format($sale->total_price, 2) }}</td>
+                    <td class="border px-4 py-2 text-right">Rp{{ number_format($sale->total_price, 2) }}</td>
                 </tr>
             </tfoot>
         </table>

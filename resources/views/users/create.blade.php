@@ -1,8 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold text-gray-800 leading-tight">
-            Create User
-        </h2>
+        <x-breadcrumb :menus="[
+        ['label' => 'Users', 'url' => route('users.index')],
+        ['label' => 'Add New User']
+    ]" />
     </x-slot>
 
     <div class="py-6">

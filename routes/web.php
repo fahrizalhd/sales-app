@@ -6,16 +6,12 @@ use App\Http\Controllers\{
     ProfileController,
     UserController,
     SaleController,
-    PaymentController
+    PaymentController,
+    DashboardController,
 };
 
 // Welcome page
 Route::get('/', fn() => view('welcome'));
-
-// Dashboard
-Route::get('/dashboard', fn() => view('dashboard'))
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
 
 // Routes with authentication
 Route::middleware('auth')->group(function () {
@@ -36,7 +32,10 @@ Route::middleware('auth')->group(function () {
     // Payments
     Route::get('/payments/create/{sale}', [PaymentController::class, 'create'])->name('payments.create');
     Route::resource('payments', PaymentController::class)->only(['index', 'store']);
+
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 });
 
 // Auth scaffolding routes (Jetstream/Breeze/etc)
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

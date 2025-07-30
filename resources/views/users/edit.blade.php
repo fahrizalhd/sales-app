@@ -1,8 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold text-gray-800 leading-tight">
-            Edit User
-        </h2>
+        <x-breadcrumb :menus="[
+        ['label' => 'Users', 'url' => route('users.index')],
+        ['label' => 'Edit User']
+    ]" />
     </x-slot>
 
     <div class="py-6">
@@ -31,6 +32,22 @@
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
+
+                    <div class="mb-4">
+                        <label for="password" class="block text-sm font-medium text-gray-700">Password (Leave blank to keep current)</label>
+                        <input type="password" name="password"
+                            class="mt-1 block w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200">
+                        @error('password')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                        <input type="password" name="password_confirmation"
+                            class="mt-1 block w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200">
+                    </div>
+
 
                     <div class="flex justify-end space-x-2">
                         <a href="{{ route('users.index') }}"

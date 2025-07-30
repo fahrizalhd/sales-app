@@ -1,11 +1,14 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold text-gray-800">New Sale</h2>
+        <x-breadcrumb :menus="[
+        ['label' => 'Sales', 'url' => route('sales.index')],
+        ['label' => 'Add New Sale']
+    ]" />
     </x-slot>
 
     <div class="max-w-5xl mx-auto p-6 bg-white mt-6 shadow rounded">
         @if(session('error'))
-            <div class="mb-4 text-red-500">{{ session('error') }}</div>
+        <div class="mb-4 text-red-500">{{ session('error') }}</div>
         @endif
 
         <form action="{{ route('sales.store') }}" method="POST" id="saleForm">
@@ -25,7 +28,7 @@
                         <select name="items[0][item_id]" class="w-full border rounded px-2 py-1 item-select" required>
                             <option value="">-- Select Item --</option>
                             @foreach ($items as $item)
-                                <option value="{{ $item->id }}" data-price="{{ $item->price }}">{{ $item->name }} (Rp{{ number_format($item->price) }})</option>
+                            <option value="{{ $item->id }}" data-price="{{ $item->price }}">{{ $item->name }} (Rp{{ number_format($item->price) }})</option>
                             @endforeach
                         </select>
                     </div>
@@ -50,7 +53,7 @@
 
             <div class="flex justify-end mt-6">
                 <a href="{{ route('sales.index') }}" class="text-gray-600 px-4 py-2 mr-3">Cancel</a>
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Save</button>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Create</button>
             </div>
         </form>
     </div>
@@ -59,7 +62,10 @@
         let itemIndex = 1;
 
         function formatRupiah(number) {
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(number);
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR'
+            }).format(number);
         }
 
         function updateSubtotals() {

@@ -1,6 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold text-gray-800">Edit Item</h2>
+        <x-breadcrumb :menus="[
+        ['label' => 'Items', 'url' => route('items.index')],
+        ['label' => 'Edit Item']
+    ]" />
     </x-slot>
 
     <div class="py-6">
@@ -38,9 +41,9 @@
                         <label class="block text-sm font-medium text-gray-700">Image</label>
                         <input type="file" name="image" class="mt-1">
                         @if ($item->image)
-                            <div class="mt-2">
-                                <img src="{{ asset('storage/' . $item->image) }}" class="w-24 h-24 object-cover rounded border" alt="Current image">
-                            </div>
+                        <div class="mt-2">
+                            <img src="{{ asset('storage/' . $item->image) }}" class="w-24 h-24 object-cover rounded border" alt="Current image">
+                        </div>
                         @endif
                         @error('image') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
                     </div>

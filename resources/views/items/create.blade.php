@@ -1,6 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold text-gray-800">Add Item</h2>
+        <x-breadcrumb :menus="[
+        ['label' => 'Items', 'url' => route('items.index')],
+        ['label' => 'Add New Item']
+    ]" />
     </x-slot>
 
     <div class="max-w-2xl mx-auto mt-6 bg-white p-6 rounded shadow">
