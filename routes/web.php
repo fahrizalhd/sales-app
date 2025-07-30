@@ -25,6 +25,7 @@ Route::middleware('auth')->group(function () {
 
     // Items
     Route::resource('items', ItemController::class);
+    Route::delete('/items/{item}/delete-image', [ItemController::class, 'deleteImage'])->name('items.deleteImage');
 
     // Sales
     Route::resource('sales', SaleController::class)->only(['index', 'create', 'store', 'show', 'destroy']);

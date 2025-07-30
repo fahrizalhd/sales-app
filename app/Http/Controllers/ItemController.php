@@ -113,4 +113,15 @@ class ItemController extends Controller
 
         return redirect()->route('items.index')->with('success', 'Item deleted successfully.');
     }
+
+    public function deleteImage(Item $item)
+    {
+        if ($item->image && Storage::exists('public/' . $item->image)) {
+            Storage::delete('public/' . $item->image);
+            $item->image = null;
+            $item->save();
+        }
+
+        return redirect()->back()->with('success', 'Image deleted successfully.');
+    }
 }

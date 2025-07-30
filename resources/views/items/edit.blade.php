@@ -1,3 +1,6 @@
+<pre>{{ $item->image }}</pre>
+<pre>{{ asset('storage/' . $item->image) }}</pre>
+
 <x-app-layout>
     <x-slot name="header">
         <x-breadcrumb :menus="[
@@ -43,6 +46,13 @@
                         @if ($item->image)
                         <div class="mt-2">
                             <img src="{{ asset('storage/' . $item->image) }}" class="w-24 h-24 object-cover rounded border" alt="Current image">
+                            <form action="{{ route('items.deleteImage', $item->id) }}" method="POST" class="mt-2">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 text-sm hover:underline">
+                                    Delete Image
+                                </button>
+                            </form>
                         </div>
                         @endif
                         @error('image') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror

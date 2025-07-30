@@ -13,9 +13,9 @@ class DashboardController extends Controller
         // Get the start date for the 30-day period
         $startDate = now()->subDays(30)->startOfDay();
 
-        $today = Carbon::today();
-        $currentMonth = Carbon::now()->month;
-        $currentYear = Carbon::now()->year;
+        $today = today();
+        $currentMonth = now()->month;
+        $currentYear = now()->year;
 
         // 30-day sales record
         $salesRecord = Sale::selectRaw('DATE(sale_date) as date, SUM(total_price) as total')
@@ -54,8 +54,8 @@ class DashboardController extends Controller
             ->whereYear('sale_date', $currentYear)
             ->sum('total_price');
 
-        $totalLastMonth = Sale::whereMonth('sale_date', Carbon::now()->subMonth()->month)
-            ->whereYear('sale_date', Carbon::now()->subMonth()->year)
+        $totalLastMonth = Sale::whereMonth('sale_date', now()->subMonth()->month)
+            ->whereYear('sale_date', now()->subMonth()->year)
             ->sum('total_price');
 
         $comparison = $totalLastMonth > 0
