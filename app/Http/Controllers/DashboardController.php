@@ -4,22 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Sale;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
     public function index()
     {
         // Get the start date for the 30-day period
-        $startDate = now()->subDays(30)->startOfDay();
-
         $today = today();
+        $monthBefore = now()->subDays(30)->startOfDay();
         $currentMonth = now()->month;
         $currentYear = now()->year;
 
         // 30-day sales record
         $salesRecord = Sale::selectRaw('DATE(sale_date) as date, SUM(total_price) as total')
-            ->where('sale_date', '>=', $startDate)
+            ->where('sale_date', '>=', $monthBefore)
+            ->where('is_paid', true)
             ->groupBy('date')
             ->orderBy('date')
             ->get();
@@ -29,11 +28,11 @@ class DashboardController extends Controller
 
         // Payment record
         $paidSalesCount = Sale::where('is_paid', true)
-            ->where('sale_date', '>=', $startDate)
+            ->where('sale_date', '>=', $monthBefore)
             ->count();
 
         $unpaidSalesCount = Sale::where('is_paid', false)
-            ->where('sale_date', '>=', $startDate)
+            ->where('sale_date', '>=', $monthBefore)
             ->count();
 
         // Top 5 sale items
@@ -41,21 +40,26 @@ class DashboardController extends Controller
             ->join('sale_items', 'sales.id', '=', 'sale_items.sale_id')
             ->join('items', 'sale_items.item_id', '=', 'items.id')
             ->select('items.name', DB::raw('SUM(sale_items.qty) as total_sold'))
-            ->where('sales.sale_date', '>=', $startDate)
+            ->where('sales.sale_date', '>=', $monthBefore)
+            ->where('sales.is_paid', true)
             ->groupBy('items.id', 'items.name')
             ->orderByDesc('total_sold')
             ->limit(5)
             ->get();
 
         // Today's sales and comparison with last month
-        $todaySales = Sale::whereDate('sale_date', $today)->sum('total_price');
+        $todaySales = Sale::whereDate('sale_date', $today)
+            ->where('is_paid', true)
+            ->sum('total_price');
 
         $totalThisMonth = Sale::whereMonth('sale_date', $currentMonth)
             ->whereYear('sale_date', $currentYear)
+            ->where('is_paid', true)
             ->sum('total_price');
 
         $totalLastMonth = Sale::whereMonth('sale_date', now()->subMonth()->month)
             ->whereYear('sale_date', now()->subMonth()->year)
+            ->where('is_paid', true)
             ->sum('total_price');
 
         $comparison = $totalLastMonth > 0
@@ -67,7 +71,7 @@ class DashboardController extends Controller
             'salesData',
             'paidSalesCount',
             'unpaidSalesCount',
-            'topItems', 
+            'topItems',
             'todaySales',
             'totalThisMonth',
             'totalLastMonth',

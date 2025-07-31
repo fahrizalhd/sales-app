@@ -33,7 +33,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:6',
+            'password' => 'required|min:8',
         ]);
 
         User::create([
@@ -72,7 +72,7 @@ class UserController extends Controller
         ];
 
         if ($request->filled('password')) {
-            $rules['password'] = ['required', 'confirmed', 'min:6'];
+            $rules['password'] = ['required', 'confirmed', 'min:8'];
         }
 
         $validated = $request->validate($rules);

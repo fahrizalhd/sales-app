@@ -11,7 +11,7 @@
             <!-- Row 1 -->
             <div class="flex flex-col md:flex-row gap-4">
                 <!-- Sales Summary -->
-                <div class="md:w-2/3 bg-white p-4 rounded shadow-md h-fit">
+                <div class="w-2/3 bg-white p-4 rounded shadow-md h-fit">
                     <h3 class="font-semibold text-md mb-4">Sales Summary</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-700">
                         <div class="bg-gray-100 p-3 rounded">
@@ -32,7 +32,7 @@
                 </div>
 
                 <!-- Payment Status -->
-                <div class="md:w-1/3 bg-white p-4 rounded shadow-md">
+                <div class="w-1/3 bg-white p-4 rounded shadow-md">
                     <h3 class="font-semibold text-md mb-2">Payment Status</h3>
                     <canvas id="paymentChart" class="w-full h-auto max-h-[200px]"></canvas>
                 </div>
@@ -87,6 +87,11 @@
                         ticks: {
                             stepSize: 10000
                         }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'none',
                     }
                 }
             }

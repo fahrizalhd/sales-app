@@ -25,6 +25,14 @@ class SaleController extends Controller
             $query->whereDate('created_at', '<=', $request->end_date);
         }
 
+        if ($request->filled('invoice_number')) {
+            $query->where('invoice_number', 'like', '%' . $request->invoice_number . '%');
+        }
+
+        if ($request->filled('is_paid')) {
+            $query->where('is_paid', $request->is_paid);
+        }
+
         $sales = $query->latest()->get();
 
         return view('sales.index', compact('sales'));

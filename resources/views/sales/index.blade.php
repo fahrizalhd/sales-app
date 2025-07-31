@@ -22,6 +22,10 @@
 
         <form method="GET" action="{{ route('sales.index') }}" class="mb-4 flex flex-wrap gap-3 items-center">
             <div>
+                <input type="text" name="invoice_number" placeholder="Search by Invoice Number"
+                    value="{{ request('invoice_number') }}" class="border rounded px-2 py-1 text-sm">
+            </div>
+            <div>
                 <input type="date" name="start_date" id="start_date" value="{{ request('start_date') }}"
                     class="border rounded px-2 py-1 text-sm">
             </div>
@@ -31,6 +35,13 @@
             <div>
                 <input type="date" name="end_date" id="end_date" value="{{ request('end_date') }}"
                     class="border rounded px-2 py-1 text-sm">
+            </div>
+            <div>
+                <select name="is_paid" class="border rounded px-2 py-1 pr-8 text-sm">
+                    <option value="">All Statuses</option>
+                    <option value="1" {{ request('is_paid') == '1' ? 'selected' : '' }}>Paid</option>
+                    <option value="0" {{ request('is_paid') === '0' ? 'selected' : '' }}>Unpaid</option>
+                </select>
             </div>
             <div>
                 <button type="submit"
