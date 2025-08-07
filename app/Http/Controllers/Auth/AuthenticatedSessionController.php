@@ -28,6 +28,14 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Update last login information
+        $user = \App\Models\User::find(Auth::id());
+        if ($user) {
+            $user->last_login_at = now();
+            $user->last_login_ip = $request->ip();
+            $user->save();
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
