@@ -19,6 +19,7 @@
                             <th scope="col" class="px-6 py-3 text-left">{!! sortableColumn('name', 'Name') !!}</th>
                             <th scope="col" class="px-6 py-3">{!! sortableColumn('email', 'Email') !!}</th>
                             <th scope="col" class="px-6 py-3">{!! sortableColumn('role', 'Role') !!}</th>
+                            <th scope="col" class="px-6 py-3">{!! sortableColumn('last_login_at', 'Last Login') !!}</th>
                             <th scope="col" class="px-6 py-3"></th>
                         </tr>
                     </thead>
@@ -28,6 +29,18 @@
                             <td class="px-6 py-4 text-left">{{ $user->name }}</th>
                             <td class="px-6 py-4">{{ $user->email }}</td>
                             <td class="px-6 py-4">{{ \App\Enums\UserRole::tryFrom($user->role->value)?->label() ?? 'Unknown' }}</td>
+                            <td class="px-6 py-4">
+                                @if($user->last_login_at)
+                                <span class="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-sm me-2">
+                                    <svg class="w-2.5 h-2.5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M10 0a10 10 0 1 0 10 10A10.011 10.011 0 0 0 10 0Zm3.982 13.982a1 1 0 0 1-1.414 0l-3.274-3.274A1.012 1.012 0 0 1 9 10V6a1 1 0 0 1 2 0v3.586l2.982 2.982a1 1 0 0 1 0 1.414Z" />
+                                    </svg>
+                                    {{ $user->last_login_at->diffForHumans() }}
+                                </span>
+                                @else
+                                <span class="text-gray-400 italic">Never</span>
+                                @endif
+                            </td>
                             <td class="px-6 py-4">
                                 <a href="{{ route('users.edit', $user) }}" class="font-medium text-blue-600 hover:underline">Edit</a>
                                 <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline ml-2" onsubmit="return confirm('Delete user?')">

@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'dev@sales.app'],
             [
-                'name' => 'Super Admin',
+                'name' => 'Developer',
                 'email' => 'dev@sales.app',
                 'password' => Hash::make('dev'),
                 'role' => UserRole::SUPERADMIN,
@@ -33,6 +33,17 @@ class UserSeeder extends Seeder
                 'email' => 'admin@sales.app',
                 'password' => Hash::make('admin'),
                 'role' => UserRole::ADMIN,
+                'email_verified_at' => now(),
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'user@sales.app'],
+            [
+                'name' => 'User',
+                'email' => 'user@sales.app',
+                'password' => Hash::make('user'),
+                'role' => UserRole::USER,
                 'email_verified_at' => now(),
             ]
         );

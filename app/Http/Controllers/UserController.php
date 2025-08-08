@@ -25,7 +25,8 @@ class UserController extends Controller
         $sort = $request->input('sort', 'name');
         $direction = $request->input('direction', 'asc');
         
-        if (in_array($sort, ['name', 'email', 'role'])) {
+        // Validate sort and direction
+        if (in_array($sort, ['name', 'email', 'role', 'last_login_at'])) {
             $users->orderBy($sort, $direction);
         }
 

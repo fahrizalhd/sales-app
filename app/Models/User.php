@@ -48,6 +48,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class, // Cast role to UserRole enum
+            'last_login_at' => 'datetime',
+            'last_login_ip' => 'string',
         ];
     }
 }

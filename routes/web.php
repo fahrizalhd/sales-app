@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ItemController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -20,6 +21,9 @@ Route::middleware('auth')->group(function () {
 
     //User management routes
     Route::resource('users', UserController::class)->only(['index', 'edit', 'update', 'destroy']);
+
+    // Item management routes
+    Route::resource('items', ItemController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
 });
 
 require __DIR__ . '/auth.php';
