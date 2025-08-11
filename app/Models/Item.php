@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Item extends Model
 {
@@ -23,6 +24,7 @@ class Item extends Model
         'is_active' => 'boolean',
     ];
 
+    // Relationships
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -31,5 +33,37 @@ class Item extends Model
     public function updatedBy()
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    // Boot method to generate SKU before creating an item
+    public static function booted()
+    {
+        // static::creating(function ($item) {
+        //     if (empty($item->sku)) {
+        //         $item->sku = self::generateSku();
+        //     }
+        // });
+    }
+
+    /**
+     * Generate a unique SKU for the item.
+     *
+     * @return string
+     */
+    public static function generateSku()
+    {
+        // Define a prefix for the SKU
+        $prefix = 'SKU';
+
+        // Generate a unique SKU, you can customize this logic as needed
+        $randomString = strtoupper(Str::random(8));
+
+        // Ensure the SKU is unique
+        while (self::where('sku', $prefix . $randomString)->exists()) {
+            $randomString = strtoupper(Str::random(8));
+        }
+
+        // Return the SKU with the prefix
+        return $prefix . "-" . $randomString;
     }
 }

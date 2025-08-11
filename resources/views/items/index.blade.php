@@ -10,13 +10,19 @@
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search..."
                         class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder-gray-400">
                     <select name="status" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5">
-                        <option value="">All Status</option>
+                        <option value="">All</option>
                         <option value="1" @selected(request('status')==='1' )>Active</option>
                         <option value="0" @selected(request('status')==='0' )>Inactive</option>
                     </select>
-
                     <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5">Search</button>
                 </form>
+
+                <a href="{{ route('items.create') }}" class="inline-flex items-center gap-1 focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5">
+                    <svg class="w-5 h-5 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5" />
+                    </svg>
+                    Add Item
+                </a>
             </div>
             <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
                 <table class="w-full text-sm text-center rtl:text-right text-gray-500">
@@ -27,7 +33,7 @@
                             <th scope="col" class="px-6 py-3">SKU</th>
                             <th scope="col" class="px-6 py-3">{!! sortableColumn('price', 'Price') !!}</th>
                             <th scope="col" class="px-6 py-3">{!! sortableColumn('quantity', 'Stock') !!}</th>
-                            <th scope="col" class="px-6 py-3">{!! sortableColumn('Status', 'Status') !!}</th>
+                            <th scope="col" class="px-6 py-3">{!! sortableColumn('is_active', 'Status') !!}</th>
                             <th scope="col" class="px-6 py-3"></th>
                         </tr>
                     </thead>
@@ -37,14 +43,21 @@
                             <td class="text-right">{{ $loop->iteration + ($items->currentPage() - 1) * $items->perPage() }}</td>
                             <td class="px-6 py-4 text-left">
                                 <span class="font-bold">{{ $item->name }}</span>
-                                @if ($item->quantity <= 20)
-                                <span class="bg-yellow-200 text-yellow-600 inline-flex items-center rounded-sm px-2 py-0.5 ml-4">
-                                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M13.09 3.294c1.924.95 3.422 1.69 5.472.692a1 1 0 0 1 1.438.9v9.54a1 1 0 0 1-.562.9c-2.981 1.45-5.382.24-7.25-.701a38.739 38.739 0 0 0-.622-.31c-1.033-.497-1.887-.812-2.756-.77-.76.036-1.672.357-2.81 1.396V21a1 1 0 1 1-2 0V4.971a1 1 0 0 1 .297-.71c1.522-1.506 2.967-2.185 4.417-2.255 1.407-.068 2.653.453 3.72.967.225.108.443.216.655.32Z" />
-                                    </svg>
-                                    <span class="text-xs ml-1">Low Stock</span>
-                                </span>
-                                @endif
+                                @if ($item->quantity <= 10 && $item->quantity > 0)
+                                    <span class="bg-yellow-200 text-yellow-600 inline-flex items-center rounded-sm px-2 py-0.5 ml-4">
+                                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M13.09 3.294c1.924.95 3.422 1.69 5.472.692a1 1 0 0 1 1.438.9v9.54a1 1 0 0 1-.562.9c-2.981 1.45-5.382.24-7.25-.701a38.739 38.739 0 0 0-.622-.31c-1.033-.497-1.887-.812-2.756-.77-.76.036-1.672.357-2.81 1.396V21a1 1 0 1 1-2 0V4.971a1 1 0 0 1 .297-.71c1.522-1.506 2.967-2.185 4.417-2.255 1.407-.068 2.653.453 3.72.967.225.108.443.216.655.32Z" />
+                                        </svg>
+                                        <span class="text-xs ml-1">Low Stock</span>
+                                    </span>
+                                    @elseif ($item->quantity === 0)
+                                    <span class="bg-red-200 text-red-600 inline-flex items-center rounded-sm px-2 py-0.5 ml-4">
+                                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                                        </svg>
+                                        <span class="text-xs ml-1">Out of Stock</span>
+                                    </span>
+                                    @endif
                             </td>
                             <td class="px-6 py-4">{{ $item->sku }}</td>
                             <td class="px-6 py-4">{{ format_rupiah($item->price)}}</td>

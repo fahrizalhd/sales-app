@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Item;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ItemController extends Controller
 {
@@ -36,7 +38,7 @@ class ItemController extends Controller
         $direction = $request->input('direction', 'asc');
 
         // Validate sort and direction
-        if (in_array($sort, ['name', 'sku', 'price', 'quantity'])) {
+        if (in_array($sort, ['name', 'price', 'quantity', 'is_active'])) {
             $items->orderBy($sort, $direction);
         }
 
@@ -52,7 +54,11 @@ class ItemController extends Controller
      */
     public function create()
     {
-        //
+        // Generate a new SKU for the item
+        $sku = Item::generateSku();
+
+        // Return the view for creating a new item
+        return view('items.create', compact('sku'));
     }
 
     /**
@@ -60,7 +66,34 @@ class ItemController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // Validate the request data
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'sku' => 'nullable|string|max:50|unique:items,sku',
+            'description' => 'nullable|string|max:1000',
+            'price' => 'required|numeric|min:0',
+            'quantity' => 'required|integer|min:0',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'is_active' => 'boolean',
+        ]);
+
+        // Create a new item
+        $loggedUser = Auth::user();
+
+        $item = Item::create([
+            'name' => $request->input('name'),
+            'sku' => $request->input('sku'),
+            'description' => $request->input('description'),
+            'price' => $request->input('price'),
+            'quantity' => $request->input('quantity'),
+            'image_path' => $request->file('image') ? $request->file('image')->store('images/items', 'public') : null,
+            'is_active' => $request->input('is_active', true),
+            'created_by' => $loggedUser->id,
+            'updated_by' => $loggedUser->id,
+        ]);
+
+        // Redirect to the items index with a success message
+        return redirect()->route('items.index')->with('success', "{$item->name} created successfully.");
     }
 
     /**
@@ -76,7 +109,11 @@ class ItemController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        // Find the item by ID
+        $item = Item::findOrFail($id);
+
+        // Return the view for editing the item
+        return view('items.edit', compact('item'));
     }
 
     /**
@@ -84,7 +121,34 @@ class ItemController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        // Validate the request data
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'sku' => 'nullable|string|max:50|unique:items,sku,',
+            'description' => 'nullable|string|max:1000',
+            'price' => 'required|numeric|min:0',
+            'quantity' => 'required|integer|min:0',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'is_active' => 'boolean',
+        ]);
+
+        // Find the item by ID
+        $item = Item::findOrFail($id);
+
+        // Update the item
+        $item->update([
+            'name' => $request->input('name'),
+            'sku' => $request->input('sku'),
+            'description' => $request->input('description'),
+            'price' => $request->input('price'),
+            'quantity' => $request->input('quantity'),
+            'image_path' => $request->file('image') ? $request->file('image')->store('images/items', 'public') : $item->image_path,
+            'is_active' => $request->input('is_active', true),
+            'updated_by' => Auth::id(),
+        ]);
+
+        // Redirect to the items index with a success message
+        return redirect()->route('items.index')->with('success', "{$item->name} updated successfully.");
     }
 
     /**
@@ -92,6 +156,25 @@ class ItemController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        // Find the item by ID
+        $item = Item::findOrFail($id);
+
+        // Check if the item is already deleted
+        if (!$item) {
+            return redirect()->route('items.index')->with('error', 'Item not found.');
+        }
+
+        // Delete the image file if it exists
+        if ($item->image_path) {
+            if (file_exists(public_path('storage/' . $item->image_path))) {
+                unlink(public_path('storage/' . $item->image_path));
+            }
+        }
+
+        // Delete the item
+        $item->delete();
+
+        // Redirect to the items index with a success message
+        return redirect()->route('items.index')->with('success', "{$item->name} deleted successfully.");
     }
 }

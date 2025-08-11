@@ -12,9 +12,10 @@ class UserController extends Controller
     //  Index method to list users
     public function index(Request $request)
     {
-        // Logic to handle sorting and searching
         // Get the search term from the request
         $search = $request->input('search');
+        
+        // Query the users with optional search functionality
         $users = User::when($search, function ($query, $search) {
             return $query->where('name', 'like', '%' . $search . '%')
                 ->orWhere('email', 'like', '%' . $search . '%')
