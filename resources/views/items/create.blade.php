@@ -29,12 +29,17 @@
                         </div>
                         <div>
                             <label for="price" class="block text-sm font-medium text-gray-700">Price</label>
-                            <input type="number" name="price" id="price" required step="0.01"
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                value="{{ old('price') }}">
-                            @error('price')
-                            <span class="text-red-500 text-sm">{{ $message }}</span>
-                            @enderror
+                            <div class="relative">
+                                <div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
+                                    Rp
+                                </div>
+                                <input type="number" name="price" id="price" required step="10"
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 ps-10"
+                                    value="{{ old('price') }}">
+                                @error('price')
+                                <span class="text-red-500 text-sm">{{ $message }}</span>
+                                @enderror
+                            </div>
                         </div>
                         <div>
                             <label for="quantity" class="block text-sm font-medium text-gray-700">Stock Quantity</label>

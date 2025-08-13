@@ -23,7 +23,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('users', UserController::class)->only(['index', 'edit', 'update', 'destroy']);
 
     // Item management routes
-    Route::resource('items', ItemController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
+    Route::resource('items', ItemController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 });
 
 require __DIR__ . '/auth.php';

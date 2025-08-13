@@ -30,52 +30,74 @@
                         </div>
                         <div>
                             <label for="price" class="block text-sm font-medium text-gray-700">Price</label>
-                            <input type="number" name="price" id="price" required step="10"
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                value="{{ old('price', $item->price) }}">
-                            @error('price')
-                            <span class="text-red-500 text-sm">{{ $message }}</span>
-                            @enderror
+                            <div class="relative">
+                                <div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
+                                    Rp
+                                </div>
+                                <input type="number" name="price" id="price" required
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 ps-10"
+                                    value="{{ old('price', number_format($item->price, 0, '', '')) }}">
+                                @error('price')
+                                <span class="text-red-500 text-sm">{{ $message }}</span>
+                                @enderror
+                            </div>
                         </div>
-                        <div>
-                            <label for="quantity" class="block text-sm font-medium text-gray-700">Stock Quantity</label>
-                            <input type="number" name="quantity" id="quantity" required
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                value="{{ old('quantity', $item->quantity) }}">
-                            @error('quantity')
-                            <span class="text-red-500 text-sm">{{ $message }}</span>
-                            @enderror
+                        <div class="grid grid-cols-2 gap-4 items-center">
+                            <div>
+                                <label for="quantity" class="block text-sm font-medium text-gray-700">Stock Quantity</label>
+                                <input type="number" name="quantity" id="quantity" required
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    value="{{ old('quantity', $item->quantity) }}">
+                                @error('quantity')
+                                <span class="text-red-500 text-sm">{{ $message }}</span>
+                                @enderror
+                            </div>
+                            <div class="mt-4">
+                                <input type="hidden" name="is_active" value="0">
+                                <input type="checkbox" name="is_active" id="is_active" value="1"
+                                    class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
+                                    {{ old('is_active', $item->is_active) ? 'checked' : '' }}>
+                                <span class="ml-2 text-sm text-gray-700">Active</span>
+                            </div>
                         </div>
                         <div>
                             <label for="image" class="block text-sm font-medium text-gray-700">Image</label>
+
                             <div class="flex flex-col items-center justify-center w-full mt-1">
                                 <label for="dropzone-file"
-                                    class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 overflow-hidden">
-                                    <div id="dropzone-content" class="flex flex-col items-center justify-center pt-5 pb-6 {{ $item->image_path ? 'hidden' : '' }}">
-                                        <svg class="w-8 h-8 mb-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                            viewBox="0 0 20 16">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 
-                        0 0 0 16 6.5A5.5 5.5 0 0 0 5.207 
-                        5.021C5.137 5.017 5.071 5 5 
-                        5a4 4 0 0 0 0 8h2.167M10 
-                        15V6m0 0L8 8m2-2 2 2" />
+                                    class="group relative flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 overflow-hidden">
+                                    <div id="dropzone-content"
+                                        class="flex flex-col items-center justify-center pt-5 pb-6 {{ $item->image_path ? 'hidden' : '' }}">
+                                        <svg class="w-8 h-8 mb-4 text-gray-500" xmlns="http://www.w3.org/2000/svg"
+                                            fill="none" viewBox="0 0 20 16">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M13 13h3a3 3 0 000-6h-.025A5.56 5.56 
+                        0 0016 6.5A5.5 5.5 0 005.207 5.021
+                        C5.137 5.017 5.071 5 5 5a4 4 0 000 8h2.167
+                        M10 15V6m0 0L8 8m2-2 2 2" />
                                         </svg>
                                         <p class="mb-2 text-sm text-gray-500">
                                             <span class="font-semibold">Click to upload</span> or drag and drop
                                         </p>
                                         <p class="text-xs text-gray-500">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
                                     </div>
-
                                     <img id="image-preview"
                                         src="{{ $item->image_path ? asset('storage/' . $item->image_path) : '' }}"
                                         alt="Item Image"
                                         class="max-h-32 py-2 rounded-md {{ $item->image_path ? '' : 'hidden' }}">
-
+                                    <button type="button" onclick="removeImage()"
+                                        class="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center cursor-pointer {{ $item->image_path ? '' : 'hidden' }}">
+                                        <svg class="w-4 h-4 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                            <path fill-rule="evenodd" d="M8.586 2.586A2 2 0 0 1 10 2h4a2 2 0 0 1 2 2v2h3a1 1 0 1 1 0 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8a1 1 0 0 1 0-2h3V4a2 2 0 0 1 .586-1.414ZM10 6h4V4h-4v2Zm1 4a1 1 0 1 0-2 0v8a1 1 0 1 0 2 0v-8Zm4 0a1 1 0 1 0-2 0v8a1 1 0 1 0 2 0v-8Z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <input type="hidden" name="delete_image" id="delete_image" value="0">
                                     <input id="dropzone-file" type="file" name="image" accept=".jpg,.jpeg,.png,.gif"
                                         class="hidden">
                                 </label>
                             </div>
+
                             @error('image')
                             <span class="text-red-500 text-sm">{{ $message }}</span>
                             @enderror
@@ -130,4 +152,17 @@
             dropzoneContent.classList.remove('hidden');
         }
     });
+
+    function removeImage() {
+        const preview = document.getElementById('image-preview');
+        const dropzoneContent = document.getElementById('dropzone-content');
+        const fileInput = document.getElementById('dropzone-file');
+        const deleteInput = document.getElementById('delete_image');
+
+        preview.src = '';
+        preview.classList.add('hidden');
+        dropzoneContent.classList.remove('hidden');
+        fileInput.value = '';
+        deleteInput.value = '1'; // Set to indicate image deletion
+    }
 </script>

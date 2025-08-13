@@ -59,6 +59,11 @@ class UserController extends Controller
             return redirect()->route('users.index')->with('error', 'You cannot edit your own role as an Admin.');
         }
 
+        // User canot edit their own role
+        if ($loggedUserRole === UserRole::USER && $loggedUser->id === $user->id) {
+            return redirect()->route('users.index')->with('error', 'You cannot edit your own role as a User.');
+        }
+
         // Logic to show the user edit form
         return view('users.edit', [
             'user' => $user,

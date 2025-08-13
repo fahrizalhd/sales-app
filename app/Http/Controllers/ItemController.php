@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Item;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use App\Enums\UserRole;
 
 class ItemController extends Controller
 {
@@ -22,6 +24,11 @@ class ItemController extends Controller
             return $query->where('name', 'like', '%' . $search . '%')
                 ->orWhere('sku', 'like', '%' . $search . '%');
         });
+
+        // Low Stock Toggler
+        if ($request-> has('low_stock')) {
+            $items->whereBetween('quantity', [1, 10]);
+        };
 
         // Filter by active status if specified
         if ($request->has('status')) {
@@ -54,6 +61,12 @@ class ItemController extends Controller
      */
     public function create()
     {
+        // User can't add item
+        $loggedUserRole = Auth::user()->role;
+        if ($loggedUserRole === UserRole::USER) {
+            return redirect()->route('items.index')->with('error', "User can't add new item.");
+        };
+
         // Generate a new SKU for the item
         $sku = Item::generateSku();
 
@@ -119,12 +132,11 @@ class ItemController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Item $item)
     {
         // Validate the request data
         $request->validate([
             'name' => 'required|string|max:255',
-            'sku' => 'nullable|string|max:50|unique:items,sku,',
             'description' => 'nullable|string|max:1000',
             'price' => 'required|numeric|min:0',
             'quantity' => 'required|integer|min:0',
@@ -132,20 +144,34 @@ class ItemController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        // Find the item by ID
-        $item = Item::findOrFail($id);
+        // If the delete_image flag is set, remove the image
+        if ($request->input('delete_image')) {
+            if ($item->image_path) {
+                Storage::disk('public')->delete($item->image_path);
+                $item->image_path = null;
+            }
+        }
+
+        // Delete the old image if a new one is uploaded
+        if ($request->hasFile('image')) {
+            if ($item->image_path) {
+                Storage::disk('public')->delete($item->image_path);
+            }
+            $item->image_path = $request->file('image')->store('images/items', 'public');
+        }
 
         // Update the item
-        $item->update([
-            'name' => $request->input('name'),
-            'sku' => $request->input('sku'),
-            'description' => $request->input('description'),
-            'price' => $request->input('price'),
-            'quantity' => $request->input('quantity'),
-            'image_path' => $request->file('image') ? $request->file('image')->store('images/items', 'public') : $item->image_path,
-            'is_active' => $request->input('is_active', true),
-            'updated_by' => Auth::id(),
-        ]);
+        $item->name = $request->name;
+        $item->description = $request->description;
+        $item->price = $request->price;
+        $item->quantity = $request->quantity;
+        $item->is_active = $request->boolean('is_active');
+        $item->updated_at = now();
+        $item->updated_by = Auth::id();
+        $item->save();
+
+        // Log the update action
+        Log::info("Item updated: {$item->name} by user ID: " . Auth::id());
 
         // Redirect to the items index with a success message
         return redirect()->route('items.index')->with('success', "{$item->name} updated successfully.");
@@ -156,6 +182,12 @@ class ItemController extends Controller
      */
     public function destroy(string $id)
     {
+        // Check if the user is authorized to delete the item
+        $loggedUser = Auth::user();
+        if ($loggedUser->role === UserRole::USER) {
+            return redirect()->route('items.index')->with('error', 'You do not have permission to delete this item.');
+        }
+
         // Find the item by ID
         $item = Item::findOrFail($id);
 

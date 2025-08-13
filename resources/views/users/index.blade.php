@@ -25,7 +25,7 @@
                     </thead>
                     <tbody>
                         @foreach($users as $user)
-                        <tr class="bg-white border-b border-gray-200 hover:bg-gray-50">
+                        <tr data-href="{{ route('users.edit', $user) }}" class="bg-white border-b border-gray-200 hover:bg-gray-50 cursor-pointer">
                             <td class="px-6 py-4 text-left">{{ $user->name }}</th>
                             <td class="px-6 py-4">{{ $user->email }}</td>
                             <td class="px-6 py-4">{{ \App\Enums\UserRole::tryFrom($user->role->value)?->label() ?? 'Unknown' }}</td>
@@ -42,7 +42,7 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4">
-                                <a href="{{ route('users.edit', $user) }}" class="font-medium text-blue-600 hover:underline">Edit</a>
+                                <!-- <a href="{{ route('users.edit', $user) }}" class="font-medium text-blue-600 hover:underline">Edit</a> -->
                                 <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline ml-2" onsubmit="return confirm('Delete user?')">
                                     @csrf @method('DELETE')
                                     <button class="text-red-500">Delete</button>
@@ -60,3 +60,13 @@
         </div>
     </div>
 </x-app-layout>
+
+<script>
+    document.querySelectorAll('tr[data-href]').forEach(row => {
+        row.addEventListener('click', (e) => {
+            if (!e.target.closest('a, button')) { // Prevent navigation if clicking on links or buttons
+                window.location.href = row.dataset.href;
+            }
+        });
+    });
+</script>

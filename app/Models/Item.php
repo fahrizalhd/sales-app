@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class Item extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'name',
         'description',
@@ -16,7 +19,10 @@ class Item extends Model
         'image_path',
         'is_active',
         'created_by',
+        'created_at',
         'updated_by',
+        'updated_at',
+        'deleted_at',
     ];
 
     protected $casts = [
@@ -38,11 +44,7 @@ class Item extends Model
     // Boot method to generate SKU before creating an item
     public static function booted()
     {
-        // static::creating(function ($item) {
-        //     if (empty($item->sku)) {
-        //         $item->sku = self::generateSku();
-        //     }
-        // });
+        //
     }
 
     /**
@@ -56,7 +58,7 @@ class Item extends Model
         $prefix = 'SKU';
 
         // Generate a unique SKU, you can customize this logic as needed
-        $randomString = strtoupper(Str::random(8));
+        $randomString = strtoupper(Str::random(4));
 
         // Ensure the SKU is unique
         while (self::where('sku', $prefix . $randomString)->exists()) {
