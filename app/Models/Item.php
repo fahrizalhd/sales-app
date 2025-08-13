@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\Blameable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class Item extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, Blameable;
 
     protected $fillable = [
         'name',
@@ -18,11 +19,9 @@ class Item extends Model
         'sku',
         'image_path',
         'is_active',
+        'category_id',
         'created_by',
-        'created_at',
         'updated_by',
-        'updated_at',
-        'deleted_at',
     ];
 
     protected $casts = [
@@ -41,10 +40,14 @@ class Item extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
-    // Boot method to generate SKU before creating an item
-    public static function booted()
+    public function stockHistories()
     {
-        //
+        return $this->hasMany(StockHistory::class, 'item_id');
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
     }
 
     /**

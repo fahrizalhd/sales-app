@@ -11,20 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('items', function (Blueprint $table) {
+        Schema::create('stock_histories', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->text('description')->nullable();
-            $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
-            $table->decimal('price', 10, 2);
-            $table->unsignedInteger('quantity')->default(0);
-            $table->string('sku')->unique()->nullable();
-            $table->string('image_path')->nullable();
-            $table->boolean('is_active')->default(true);
+            $table->foreignId('item_id')->constrained()->cascadeOnDelete();
+            $table->integer('change');
+            $table->integer('old_quantity');
+            $table->integer('new_quantity');
+            $table->string('reason')->nullable();
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->foreignId('updated_by')->constrained('users')->onDelete('cascade');
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 
@@ -33,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('items');
+        Schema::dropIfExists('stock_histories');
     }
 };

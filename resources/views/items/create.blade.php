@@ -6,7 +6,7 @@
     <div class="py-4">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4">
-                <form method="POST" action="{{ route('items.store') }}" class="space-y-4" enctype="multipart/form-data">
+                <form method="POST" action="{{ route('items.store') }}" enctype="multipart/form-data">
                     @csrf
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>

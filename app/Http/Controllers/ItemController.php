@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use App\Enums\UserRole;
+use App\Models\StockHistory;
 
 class ItemController extends Controller
 {
@@ -24,21 +25,16 @@ class ItemController extends Controller
             return $query->where('name', 'like', '%' . $search . '%')
                 ->orWhere('sku', 'like', '%' . $search . '%');
         });
+        
+        // Inactive Status Toggler
+        if ($request->has('is_inactive')) {
+            $items->where('is_active', false);
+        };
 
         // Low Stock Toggler
         if ($request-> has('low_stock')) {
             $items->whereBetween('quantity', [1, 10]);
         };
-
-        // Filter by active status if specified
-        if ($request->has('status')) {
-            $isActive = $request->input('status');
-            if ($isActive === '1') {
-                $items->where('is_active', true);
-            } elseif ($isActive === '0') {
-                $items->where('is_active', false);
-            }
-        }
 
         // Sorting logic
         $sort = $request->input('sort', 'name');
@@ -64,7 +60,7 @@ class ItemController extends Controller
         // User can't add item
         $loggedUserRole = Auth::user()->role;
         if ($loggedUserRole === UserRole::USER) {
-            return redirect()->route('items.index')->with('error', "User can't add new item.");
+            return redirect()->route('items.index')->with('error', 'You do not have permission to add new item.');
         };
 
         // Generate a new SKU for the item
@@ -122,8 +118,12 @@ class ItemController extends Controller
      */
     public function edit(string $id)
     {
-        // Find the item by ID
-        $item = Item::findOrFail($id);
+        // Find the item by ID with stockHistories and their users, ordered by created_at desc
+        $item = Item::with([
+            'stockHistories' => function ($q) {
+                $q->with('user')->orderBy('created_at', 'desc');
+            }
+        ])->findOrFail($id);
 
         // Return the view for editing the item
         return view('items.edit', compact('item'));
@@ -134,6 +134,9 @@ class ItemController extends Controller
      */
     public function update(Request $request, Item $item)
     {
+        $loggedUser = Auth::user();
+        $oldQty = $item->quantity;
+
         // Validate the request data
         $request->validate([
             'name' => 'required|string|max:255',
@@ -161,14 +164,27 @@ class ItemController extends Controller
         }
 
         // Update the item
-        $item->name = $request->name;
-        $item->description = $request->description;
-        $item->price = $request->price;
-        $item->quantity = $request->quantity;
-        $item->is_active = $request->boolean('is_active');
-        $item->updated_at = now();
-        $item->updated_by = Auth::id();
-        $item->save();
+        $item->update([
+            'name' => $request->name,
+            'description' => $request->description,
+            'price' => $request->price,
+            'quantity' => $request->quantity,
+            'is_active' => $request->boolean('is_active'),
+            'updated_at' => now(),
+            'updated_by' => $loggedUser->id,
+        ]);
+
+        // Store to Stock History
+        if ($oldQty != $request->quantity) {
+            StockHistory::create([
+                'item_id' => $item->id,
+                'change' => $item->quantity - $oldQty,
+                'old_quantity' => $oldQty,
+                'new_quantity' => $item->quantity,
+                'reason' => 'Stock Update',
+                'user_id' => $loggedUser->id,
+            ]);
+        };
 
         // Log the update action
         Log::info("Item updated: {$item->name} by user ID: " . Auth::id());

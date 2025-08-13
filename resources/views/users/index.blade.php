@@ -31,18 +31,17 @@
                             <td class="px-6 py-4">{{ \App\Enums\UserRole::tryFrom($user->role->value)?->label() ?? 'Unknown' }}</td>
                             <td class="px-6 py-4">
                                 @if($user->last_login_at)
-                                <span class="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-sm me-2">
-                                    <svg class="w-2.5 h-2.5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 0a10 10 0 1 0 10 10A10.011 10.011 0 0 0 10 0Zm3.982 13.982a1 1 0 0 1-1.414 0l-3.274-3.274A1.012 1.012 0 0 1 9 10V6a1 1 0 0 1 2 0v3.586l2.982 2.982a1 1 0 0 1 0 1.414Z" />
+                                <span class="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center gap-2 px-2.5 py-0.5 rounded-sm">
+                                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm11-4a1 1 0 1 0-2 0v4a1 1 0 0 0 .293.707l3 3a1 1 0 0 0 1.414-1.414L13 11.586V8Z" clip-rule="evenodd" />
                                     </svg>
-                                    {{ $user->last_login_at->diffForHumans() }}
+                                    <span>{{ $user->last_login_at->diffForHumans() }}</span>
                                 </span>
                                 @else
                                 <span class="text-gray-400 italic">Never</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4">
-                                <!-- <a href="{{ route('users.edit', $user) }}" class="font-medium text-blue-600 hover:underline">Edit</a> -->
                                 <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline ml-2" onsubmit="return confirm('Delete user?')">
                                     @csrf @method('DELETE')
                                     <button class="text-red-500">Delete</button>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ItemController;
@@ -21,6 +22,9 @@ Route::middleware('auth')->group(function () {
 
     //User management routes
     Route::resource('users', UserController::class)->only(['index', 'edit', 'update', 'destroy']);
+
+    //Category management routes
+    Route::resource('categories', CategoryController::class)->only(['index', 'edit', 'destroy']);
 
     // Item management routes
     Route::resource('items', ItemController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
