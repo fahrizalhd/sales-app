@@ -7,7 +7,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="flex justify-between mb-4">
                 <form method="GET" action="{{ route('users.index') }}" class="flex items-center space-x-2">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search..."
+                    <input type="text" name="filter[search]" value="{{ request('filter.search') }}" placeholder="Search..."
                         class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder-gray-400">
                     <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5">Search</button>
                 </form>

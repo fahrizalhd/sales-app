@@ -7,7 +7,6 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Spatie\QueryBuilder\AllowedFilter;
-use Spatie\QueryBuilder\AllowedSort;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class CategoryController extends Controller
@@ -15,13 +14,14 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
         $categories = QueryBuilder::for(Category::class)
             ->allowedFilters([
-                AllowedFilter::callback('search', function($query, $value) {
-                    $query->where('name', 'like', "%{$value}%")
-                        ->orWhere('description', 'like', "{$value}");
+                AllowedFilter::callback('search', function ($query, $value) {
+                    $query
+                        ->where('name', 'like', "%{$value}%")
+                        ->orWhere('description', 'like', "%{$value}%");
                 }),
             ])
             ->allowedSorts(['name', 'description'])
@@ -79,12 +79,15 @@ class CategoryController extends Controller
     {
         $loggedUser = Auth::user();
         if ($loggedUser->role === UserRole::USER) {
-            return redirect()->route('items.index')-with('error', 'You do not have permission to delete this category.');
+            return redirect()->route('items.index') -
+                with('error', 'You do not have permission to delete this category.');
         }
 
         $category = Category::findOrFail($id);
         $category->delete();
 
-        return redirect()->route('items.index')->with('success', "{$category->name} deleted successfully.");
+        return redirect()
+            ->route('items.index')
+            ->with('success', "{$category->name} deleted successfully.");
     }
 }

@@ -6,39 +6,41 @@ use App\Models\User;
 use App\Enums\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class UserController extends Controller
 {
-    //  Index method to list users
-    public function index(Request $request)
+    /**
+     * Display a listing of the users with filtering and sorting.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function index()
     {
-        // Get the search term from the request
-        $search = $request->input('search');
-        
-        // Query the users with optional search functionality
-        $users = User::when($search, function ($query, $search) {
-            return $query->where('name', 'like', '%' . $search . '%')
-                ->orWhere('email', 'like', '%' . $search . '%')
-                ->orWhere('role', 'like', '%' . $search . '%');
-        });
+        $users = QueryBuilder::for(User::class)
+            ->allowedFilters([
+                AllowedFilter::callback('search', function ($query, $value) {
+                    $query
+                        ->where('name', 'like', "%{$value}%")
+                        ->orWhere('email', 'like', "%{$value}%")
+                        ->orWhere('role', 'like', "%{$value}%");
+                }),
+            ])
+            ->allowedSorts(['name', 'email', 'role', 'last_login_at'])
+            ->defaultSort('name')
+            ->paginate(10)
+            ->withQueryString();
 
-        // Sorting logic
-        $sort = $request->input('sort', 'name');
-        $direction = $request->input('direction', 'asc');
-        
-        // Validate sort and direction
-        if (in_array($sort, ['name', 'email', 'role', 'last_login_at'])) {
-            $users->orderBy($sort, $direction);
-        }
-
-        // Paginate the results
-        $users = $users->paginate(10)->withQueryString();
-        
-        // Return the view with users and search term
-        return view('users.index', compact('users', 'search'));
+        return view('users.index', compact('users'));
     }
 
-    // Edit method to show user edit form
+    /**
+     * Show the form for editing the specified user.
+     *
+     * @param  \App\Models\User  $user
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+     */
     public function edit(User $user)
     {
         $loggedUser = Auth::user();
@@ -46,22 +48,30 @@ class UserController extends Controller
 
         // Role user cannot edit other users
         if ($loggedUserRole === UserRole::USER && $loggedUser->id !== $user->id) {
-            return redirect()->route('users.index')->with('error', 'You do not have permission to edit this user.');
+            return redirect()
+                ->route('users.index')
+                ->with('error', 'You do not have permission to edit this user.');
         }
 
         // Admin cannot edit Super Admin users
         if ($loggedUserRole === UserRole::ADMIN && $user->role === UserRole::SUPERADMIN) {
-            return redirect()->route('users.index')->with('error', 'You cannot edit a Super Admin user.');
+            return redirect()
+                ->route('users.index')
+                ->with('error', 'You cannot edit a Super Admin user.');
         }
 
         // Admin cannot edit their own role
         if ($loggedUserRole === UserRole::ADMIN && $loggedUser->id === $user->id) {
-            return redirect()->route('users.index')->with('error', 'You cannot edit your own role as an Admin.');
+            return redirect()
+                ->route('users.index')
+                ->with('error', 'You cannot edit your own role as an Admin.');
         }
 
         // User canot edit their own role
         if ($loggedUserRole === UserRole::USER && $loggedUser->id === $user->id) {
-            return redirect()->route('users.index')->with('error', 'You cannot edit your own role as a User.');
+            return redirect()
+                ->route('users.index')
+                ->with('error', 'You cannot edit your own role as a User.');
         }
 
         // Logic to show the user edit form
@@ -71,12 +81,20 @@ class UserController extends Controller
         ]);
     }
 
-    // Update method to handle user updates
+    /**
+     * Update the specified user in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\User  $user
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function update(Request $request, User $user)
     {
         // Logic to update the user
         $request->validate([
-            'role' => 'required|in:' . implode(',', array_map(fn($role) => $role->value, UserRole::cases())),
+            'role' =>
+                'required|in:' .
+                implode(',', array_map(fn($role) => $role->value, UserRole::cases())),
         ]);
 
         $user->role = $request->role;
@@ -85,25 +103,35 @@ class UserController extends Controller
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }
 
-    // Destroy method to handle user deletion
-    public function destroy(User $user)
+    /**
+     * Remove the specified user from storage.
+     *
+     * @param  \App\Models\User  $user
+     * @return \Illuminate\Http\RedirectResponse
+     */ public function destroy(User $user)
     {
         $loggedUser = Auth::user();
         $loggedUserRole = $loggedUser->role;
 
         // Role user cannot edit other users
         if ($loggedUserRole === UserRole::USER && $loggedUser->id !== $user->id) {
-            return redirect()->route('users.index')->with('error', 'You do not have permission to edit this user.');
+            return redirect()
+                ->route('users.index')
+                ->with('error', 'You do not have permission to edit this user.');
         }
 
         // Admin cannot edit Super Admin users
         if ($loggedUserRole === UserRole::ADMIN && $user->role === UserRole::SUPERADMIN) {
-            return redirect()->route('users.index')->with('error', 'You cannot edit a Super Admin user.');
+            return redirect()
+                ->route('users.index')
+                ->with('error', 'You cannot edit a Super Admin user.');
         }
 
         // Admin cannot edit their own role
         if ($loggedUserRole === UserRole::ADMIN && $loggedUser->id === $user->id) {
-            return redirect()->route('users.index')->with('error', 'You cannot edit your own role as an Admin.');
+            return redirect()
+                ->route('users.index')
+                ->with('error', 'You cannot edit your own role as an Admin.');
         }
         // Logic to delete the user
         $user->delete();

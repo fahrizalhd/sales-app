@@ -12,7 +12,6 @@ class StockHistory extends Model
         'old_quantity', 
         'new_quantity', 
         'reason', 
-        'user_id',
         'created_by',
         'updated_by',
     ];
@@ -21,11 +20,6 @@ class StockHistory extends Model
     public function item()
     {
         return $this->belongsTo(Item::class, 'item_id');
-    }
-
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function createdBy()

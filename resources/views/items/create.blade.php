@@ -19,6 +19,21 @@
                             @enderror
                         </div>
                         <div>
+                            <label for="category_id" class="block text-sm font-medium text-gray-700">Category</label>
+                            <select name="category_id" id="category_id" required
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">-- Select Category --</option>
+                                @foreach($categories as $category)
+                                <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                    {{ $category->name }}
+                                </option>
+                                @endforeach
+                            </select>
+                            @error('category_id')
+                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                            @enderror
+                        </div>
+                        <div>
                             <label for="sku" class="block text-sm font-medium text-gray-700">SKU</label>
                             <input type="text" name="sku" id="sku" required readonly
                                 class="mt-1 block w-full disabled border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -50,6 +65,14 @@
                             <span class="text-red-500 text-sm">{{ $message }}</span>
                             @enderror
                         </div>
+                        <div class="md:relative md:h-[66px]">
+                            <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                            <textarea name="description" id="description" rows="4"
+                                class="mt-1 block md:absolute md:top-6 md:right-0 md:bottom-0 md:left-0 w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('description') }}</textarea>
+                            @error('description')
+                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                            @enderror
+                        </div>
                         <div>
                             <label for="image" class="block text-sm font-medium text-gray-700">Image</label>
                             <div class="flex flex-col items-center justify-center w-full mt-1">
@@ -78,16 +101,8 @@
                             <span class="text-red-500 text-sm">{{ $message }}</span>
                             @enderror
                         </div>
-                        <div>
-                            <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-                            <textarea name="description" id="description" rows="4"
-                                class="mt-1 block w-full h-32 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('description') }}</textarea>
-                            @error('description')
-                            <span class="text-red-500 text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
                     </div>
-                    <div class="flex items-end justify-end gap-2">
+                    <div class="mt-4 flex items-end justify-end gap-2">
                         <a href="{{ route('items.index') }}"
                             class="py-2.5 px-5  text-sm font-medium text-gray-900 focus:outline-none bg-none rounded-lg hover:bg-gray-100 hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-100">
                             Cancel

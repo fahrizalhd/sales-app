@@ -21,6 +21,19 @@
                                 @enderror
                             </div>
                             <div>
+                                <label for="category_id" class="block text-sm font-medium text-gray-700">Category</label>
+                                <select name="category_id" id="category_id" required
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    @foreach($categories as $category)
+                                    <option value="{{ $category->id }}"
+                                        {{ old('category_id', $item->category_id) == $category->id ? 'selected' : '' }}>
+                                        {{ $category->name }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
                                 <label for="sku" class="block text-sm font-medium text-gray-700">SKU</label>
                                 <input type="text" name="sku" id="sku" required readonly
                                     class="mt-1 block w-full disabled border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -141,7 +154,7 @@
                                             {{ $history->reason }}
                                         </p>
                                         <p class="text-xs text-gray-500 truncate">
-                                            {{ $history->user->name }}
+                                            {{ $history->createdBy?->name }}
                                         </p>
                                     </div>
                                     <div class="inline-flex items-center text-base font-semibold text-gray-900">
