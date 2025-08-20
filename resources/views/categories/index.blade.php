@@ -16,8 +16,12 @@
                 <table class="w-full text-sm text-center rtl:text-right text-gray-500">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-left">{!! sortableColumn('name', 'Name') !!}</th>
-                            <th scope="col" class="px-6 py-3">{!! sortableColumn('description', 'Description') !!}</th>
+                            <th scope="col" class="px-6 py-3 text-left">
+                                <x-sort-link column="name" label="Name"></x-sort-link>
+                            </th>
+                            <th scope="col" class="px-6 py-3">
+                                <x-sort-link column="description" label="Description"></x-sort-link>
+                            </th>
                             <th scope="col" class="px-6 py-3"></th>
                         </tr>
                     </thead>

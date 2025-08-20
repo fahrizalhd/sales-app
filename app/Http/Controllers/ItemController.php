@@ -9,46 +9,34 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use App\Enums\UserRole;
 use App\Models\StockHistory;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class ItemController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
-        // Get the search term from the request
-        $search = $request->input('search');
+        $items = QueryBuilder::for(Item::class)
+            ->allowedFilters([
+                AllowedFilter::callback('search', function ($query, $value) {
+                    $query->where('name', 'like', "%{$value}%")
+                        ->orWhere('sku', 'like', "%{$value}%");
+                }),
+                // For Quick Filter
+                AllowedFilter::exact('is_active'),
+                AllowedFilter::callback('low_stock', function ($query, $value) {
+                    if ($value) {
+                        $query->whereBetween('quantity', [1, 10]);
+                    }
+                }),
+            ])
+            ->allowedSorts(['name', 'price', 'quantity', 'is_active'])
+            ->paginate(10)
+            ->withQueryString();
 
-        // Query the items with optional search functionality
-        $items = Item::when($search, function ($query, $search) {
-            return $query->where('name', 'like', '%' . $search . '%')
-                ->orWhere('sku', 'like', '%' . $search . '%');
-        });
-        
-        // Inactive Status Toggler
-        if ($request->has('is_inactive')) {
-            $items->where('is_active', false);
-        };
-
-        // Low Stock Toggler
-        if ($request-> has('low_stock')) {
-            $items->whereBetween('quantity', [1, 10]);
-        };
-
-        // Sorting logic
-        $sort = $request->input('sort', 'name');
-        $direction = $request->input('direction', 'asc');
-
-        // Validate sort and direction
-        if (in_array($sort, ['name', 'price', 'quantity', 'is_active'])) {
-            $items->orderBy($sort, $direction);
-        }
-
-        // Paginate the results
-        $items = $items->paginate(10)->withQueryString();
-
-        // Return a view with the items
         return view('items.index', compact('items'));
     }
 

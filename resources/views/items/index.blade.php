@@ -15,7 +15,7 @@
 
                     <div class="flex items-center justify-start gap-2">
                         <span class="font-medium text-sm">Quick Filter:</span>
-                        <div x-data="{lowStock: {{ request()->has('low_stock') ? 'true' : 'false' }} }">
+                        <div x-data="{lowStock: {{ request('filter.low_stock', 0) ? 'true' : 'false' }} }">
                             <button @click="
                         lowStock = !lowStock;
                         let url = new URL(window.location.href);
@@ -33,15 +33,15 @@
                             </button>
                         </div>
 
-                        <div x-data="{isInactive: {{ request()->has('is_inactive') ? 'true' : 'false' }} }">
+                        <div x-data="{isInactive: {{ request('filter.is_active', 1) == 0 ? 'true' : 'false' }} }">
                             <button @click="
                         isInactive = !isInactive;
                         let url = new URL(window.location.href);
                         url.searchParams.delete('page');
                         if (isInactive) {
-                            url.searchParams.set('is_inactive', '1');
+                            url.searchParams.set('is_active', '0');
                         } else {
-                            url.searchParams.delete('is_inactive');
+                            url.searchParams.delete('is_active');
                         }
                         window.location.href = url.toString();
                         "
@@ -64,20 +64,20 @@
                 <table class="w-full text-sm text-center rtl:text-right text-gray-500">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
-                            <th scope="col" class="text-right">No</th>
+                            <!-- <th scope="col" class="text-right">No</th> -->
                             <th scope="col" class="px-6 py-3 text-left">SKU</th>
-                            <th scope="col" class="px-6 py-3">{!! sortableColumn('name', 'Name') !!}</th>
-                            <th scope="col" class="px-6 py-3">{!! sortableColumn('category', 'Category') !!}</th>
-                            <th scope="col" class="px-6 py-3">{!! sortableColumn('price', 'Price') !!}</th>
-                            <th scope="col" class="px-6 py-3">{!! sortableColumn('quantity', 'Stock') !!}</th>
-                            <th scope="col" class="px-6 py-3">{!! sortableColumn('is_active', 'Status') !!}</th>
+                            <th scope="col" class="px-6 py-3">Name</th>
+                            <th scope="col" class="px-6 py-3">Category</th>
+                            <th scope="col" class="px-6 py-3">Price</th>
+                            <th scope="col" class="px-6 py-3">Stock</th>
+                            <th scope="col" class="px-6 py-3">Status</th>
                             <th scope="col" class="px-6 py-3"></th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($items as $item)
                         <tr data-href="{{ route('items.edit', $item) }}" class="bg-white border-b border-gray-200 hover:bg-gray-50 cursor-pointer">
-                            <td class="text-right">{{ $loop->iteration + ($items->currentPage() - 1) * $items->perPage() }}</td>
+                            <!-- <td class="text-right">{{ $loop->iteration + ($items->currentPage() - 1) * $items->perPage() }}</td> -->
                             <td class="px-6 py-4 text-left font-bold">{{ $item->sku }}</td>
                             <td class="px-6 py-4">{{ $item->name }}</td>
                             <td class="px-6 py-4">{{ $item->category->name }}</td>

@@ -6,6 +6,9 @@ use App\Enums\UserRole;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\AllowedSort;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class CategoryController extends Controller
 {
@@ -14,26 +17,17 @@ class CategoryController extends Controller
      */
     public function index(Request $request)
     {
-        // Get the search term from the request
-        $search = $request->input('search');
-
-        // Query the category with optional search functionality
-        $categories = Category::when($search, function ($query, $search) {
-            return $query->where('name', 'like', '%'. $search. '%')
-                ->orWhere('description', 'like', '%'. $search. '%');
-        });
-
-        // Sorting
-        $sort = $request->input('sort', 'name');
-        $direction = $request->input('direction', 'asc');
-
-        // Validate sort and direction
-        if (in_array($sort, ['name', 'description'])) {
-            $categories->orderBy($sort, $direction);
-        }
-
-        // Paginate
-        $categories = $categories->paginate(10)->withQueryString();
+        $categories = QueryBuilder::for(Category::class)
+            ->allowedFilters([
+                AllowedFilter::callback('search', function($query, $value) {
+                    $query->where('name', 'like', "%{$value}%")
+                        ->orWhere('description', 'like', "{$value}");
+                }),
+            ])
+            ->allowedSorts(['name', 'description'])
+            ->defaultSort('name')
+            ->paginate(10)
+            ->withQueryString();
 
         return view('categories.index', compact('categories'));
     }
