@@ -57,7 +57,7 @@ class Item extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'price' => 'decimal:2',
+        'price'     => 'decimal:2',
         'is_active' => 'boolean',
     ];
 
@@ -97,7 +97,9 @@ class Item extends Model
      */
     public function category()
     {
-        return $this->belongsTo(Category::class, 'category_id');
+        return $this->belongsTo(Category::class, 'category_id')->withDefault([
+            'name' => 'Uncategorized',
+        ]);
     }
 
     /**

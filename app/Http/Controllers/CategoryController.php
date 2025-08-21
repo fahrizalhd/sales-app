@@ -37,7 +37,16 @@ class CategoryController extends Controller
      */
     public function create()
     {
-        //
+        // User can't add item
+        $loggedUserRole = Auth::user()->role;
+        if ($loggedUserRole === UserRole::USER) {
+            return redirect()
+                ->route('categories.index')
+                ->with('error', 'You do not have permission to add new item.');
+        }
+
+        // Return the view for creating a new item
+        return view('categories.create');
     }
 
     /**
@@ -45,7 +54,21 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        $loggedUser = Auth::user();
+
+        $category = Category::create([
+            'name' => $request->input('name'),
+            'description' => $request->input('description'),
+            'created_by' => $loggedUser->id,
+            'updated_by' => $loggedUser->id,
+        ]);
+
+        return redirect()->route('categories.index')->with('success', "{$category->name} created successfully");
     }
 
     /**
@@ -61,15 +84,37 @@ class CategoryController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $loggedUserRole = Auth::user()->role;
+        if ($loggedUserRole === UserRole::USER) {
+            return redirect()
+                ->route('categories.index')
+                ->with('error', 'You do not have permission to edit this item.');
+        }
+
+        $category = Category::findOrFail($id);
+
+        return view('categories.edit', compact('category'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Category $category)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        $loggedUser = Auth::user();
+
+        $category->update([
+            'name' => $request->input('name'),
+            'description' => $request->input('description'),
+            'updated_by' => $loggedUser->id,
+        ]);
+
+        return redirect()->route('categories.index')->with('success', "{$category->name} updated successfully");
     }
 
     /**
@@ -87,7 +132,7 @@ class CategoryController extends Controller
         $category->delete();
 
         return redirect()
-            ->route('items.index')
+            ->route('categories.index')
             ->with('success', "{$category->name} deleted successfully.");
     }
 }
