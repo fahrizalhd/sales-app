@@ -48,7 +48,7 @@
                                     <div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
                                         Rp
                                     </div>
-                                    <input type="number" name="price" id="price" required
+                                    <input type="number" name="price" id="price" required step=10
                                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 ps-10"
                                         value="{{ old('price', number_format($item->price, 0, '', '')) }}">
                                     @error('price')
@@ -74,9 +74,16 @@
                                     <span class="ml-2 text-sm text-gray-700">Active</span>
                                 </div>
                             </div>
+                            <div class="md:relative md:h-[66px]">
+                                <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                                <textarea name="description" id="description" rows="4"
+                                    class="mt-1 block md:absolute md:top-6 md:right-0 md:bottom-0 md:left-0 w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('description', $item->description) }}</textarea>
+                                @error('description')
+                                <span class="text-red-500 text-sm">{{ $message }}</span>
+                                @enderror
+                            </div>
                             <div>
                                 <label for="image" class="block text-sm font-medium text-gray-700">Image</label>
-
                                 <div class="flex flex-col items-center justify-center w-full mt-1">
                                     <label for="dropzone-file"
                                         class="group relative flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 overflow-hidden">
@@ -108,22 +115,11 @@
                                             class="hidden">
                                     </label>
                                 </div>
-
                                 @error('image')
                                 <span class="text-red-500 text-sm">{{ $message }}</span>
                                 @enderror
                             </div>
-
-                            <div>
-                                <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-                                <textarea name="description" id="description" rows="4"
-                                    class="mt-1 block w-full h-32 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('description', $item->description) }}</textarea>
-                                @error('description')
-                                <span class="text-red-500 text-sm">{{ $message }}</span>
-                                @enderror
-                            </div>
                         </div>
-
                         <div class="flex items-end justify-end gap-2 mt-4">
                             <a href="{{ route('items.index') }}"
                                 class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-none rounded-lg hover:bg-gray-100 hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-100">
