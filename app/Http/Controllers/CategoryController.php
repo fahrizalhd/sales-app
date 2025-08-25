@@ -59,13 +59,9 @@ class CategoryController extends Controller
             'description' => 'nullable|string|max:1000',
         ]);
 
-        $loggedUser = Auth::user();
-
         $category = Category::create([
             'name' => $request->input('name'),
             'description' => $request->input('description'),
-            'created_by' => $loggedUser->id,
-            'updated_by' => $loggedUser->id,
         ]);
 
         return redirect()->route('categories.index')->with('success', "{$category->name} created successfully");
@@ -106,12 +102,10 @@ class CategoryController extends Controller
             'description' => 'nullable|string|max:1000',
         ]);
 
-        $loggedUser = Auth::user();
 
         $category->update([
             'name' => $request->input('name'),
             'description' => $request->input('description'),
-            'updated_by' => $loggedUser->id,
         ]);
 
         return redirect()->route('categories.index')->with('success', "{$category->name} updated successfully");

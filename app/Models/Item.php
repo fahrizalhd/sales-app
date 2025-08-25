@@ -47,8 +47,6 @@ class Item extends Model
         'image_path',
         'is_active',
         'category_id',
-        'created_by',
-        'updated_by',
     ];
 
     /**
@@ -122,5 +120,15 @@ class Item extends Model
 
         // Return the SKU with the prefix
         return $prefix . "-" . $randomString;
+    }
+
+    /**
+     * Cascade soft delete related items.
+     */
+    public static function booted()
+    {
+        static::deleting(function ($sale) {
+            $sale->stockHistories->each->delete();
+        });
     }
 }

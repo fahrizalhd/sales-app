@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\Blameable;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -24,6 +25,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class StockHistory extends Model
 {
+    use Blameable;
+    
     /**
      * The attributes that are mass assignable.
      *
@@ -35,8 +38,6 @@ class StockHistory extends Model
         'old_quantity',
         'new_quantity',
         'reason',
-        'created_by',
-        'updated_by',
     ];
 
     /**

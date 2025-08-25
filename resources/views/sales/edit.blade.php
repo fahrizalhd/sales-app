@@ -1,26 +1,32 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl">Add New Sale</h2>
+        <h2 class="font-semibold text-xl">Edit Sale: {{ $sale->invoice_number }}</h2>
     </x-slot>
 
     <div class="py-4">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4">
-                <form method="POST" action="{{ route('sales.store') }}" enctype="multipart/form-data">
+                <form method="POST" action="{{ route('sales.update', $sale) }}" enctype="multipart/form-data">
                     @csrf
+                    @method('PUT')
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label for="invoice_number" class="block text-sm font-medium text-gray-700">Invoice Number</label>
-                            <input type="text" name="invoice_number" id="invoice_number" required readonly
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                value="{{ $invoice_number }}">
-                            @error('invoice_number')
-                            <span class="text-red-500 text-sm">{{ $message }}</span>
-                            @enderror
+                            <div>
+                                <label class="text-sm font-medium text-gray-700">Created :</label>
+                                <span class="font-semibold text-md">
+                                    {{ $sale->createdBy->name }} at {{ format_date_with_time($sale->created_at) }}
+                                </span>
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-gray-700">Updated :</label>
+                                <span class="font-semibold text-md">
+                                    {{ $sale->updatedBy->name }} at {{ format_date_with_time($sale->updated_at) }}
+                                </span>
+                            </div>
                         </div>
                         <div>
                             <label for="customer_name" class="block text-sm font-medium text-gray-700">Customer Name</label>
-                            <input type="text" name="customer_name" value="{{ old('customer_name') }}"
+                            <input type="text" name="customer_name" value="{{ $sale->customer_name }}"
                                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             @error('customer_name')
                             <span class="text-red-500 text-sm">{{ $message }}</span>
@@ -40,12 +46,20 @@
                                         </tr>
                                     </thead>
                                     <tbody id="items-table">
-                                        @php $oldItems = old('items', [[]]); @endphp
+                                        @php
+                                        $oldItems = old('items', $sale->saleItems->map(function($si) {
+                                            return [
+                                                'id' => $si->item_id,
+                                                'qty' => $si->quantity,
+                                                'price' => $si->price,
+                                                ];
+                                            })->toArray());
+                                        @endphp
                                         @foreach ($oldItems as $index => $oldItem)
                                         <tr>
                                             <td class="px-4 py-2">
                                                 <select name="saleItems[{{ $index }}][id]"
-                                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 item-select">
+                                                    class="item-select border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                                     <option value="">-- Select Item --</option>
                                                     @foreach ($items as $item)
                                                     <option value="{{ $item->id }}" data-price="{{ $item->price }}"
@@ -55,13 +69,12 @@
                                                     @endforeach
                                                 </select>
                                             </td>
-                                            <td class="px-4 py-2">
-                                                <input type="number" name="saleItems[{{ $index }}][qty]"
-                                                    value="{{ $oldItem['qty'] ?? 1 }}" min="1"
-                                                    class="w-16 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 item-qty">
+                                            <td class="px-2 py-2">
+                                                <input type="number" name="saleItems[{{ $index }}][qty]" value="{{ $oldItem['qty'] ?? 1 }}" min="1"
+                                                    class="item-qty w-16 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                             </td>
-                                            <td class="px-4 py-2 item-price">{{ format_rupiah(0) }}</td>
-                                            <td class="px-4 py-2 item-subtotal">{{ format_rupiah(0) }}</td>
+                                            <td class="px-4 py-2 item-price">{{ format_rupiah($oldItem['price'] ?? 0) }}</td>
+                                            <td class="px-4 py-2 item-subtotal">{{ format_rupiah(($oldItem['qty'] ?? 1) * ($oldItem['price'] ?? 0)) }}</td>
                                             <td class="px-0 py-2">
                                                 <button type="button" class="remove-row text-red-600">
                                                     <svg class="w-6 h-6 rotate-45" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -84,8 +97,8 @@
                                 </div>
                                 <button type="button" id="add-row"
                                     class="mt-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 text-white rounded-lg text-sm flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
-                                        height="24" fill="none" viewBox="0 0 24 24">
+                                    <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        fill="none" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5" />
                                     </svg>
                                     Add Item
@@ -103,12 +116,12 @@
                         </a>
                         <button type="submit"
                             class="inline-flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">
-                            <svg class="w-[20px] h-[20px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-[20px] h-[20px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                fill="currentColor" viewBox="0 0 24 24">
                                 <path fill-rule="evenodd" d="M5 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7.414A2 2 0 0 0 20.414 6L18 3.586A2 2 0 0 0 16.586 3H5Zm10 11a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM8 7V5h8v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1Z"
                                     clip-rule="evenodd" />
                             </svg>
-                            Save
+                            Update
                         </button>
                     </div>
                 </form>
@@ -169,7 +182,7 @@
                     @endforeach
                 </select>
             </td>
-            <td class="px-4 py-2">
+            <td class="px-2 py-2">
                 <input type="number" name="saleItems[${rowIndex}][qty]" value="1" min="1"
                     class="w-16 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 item-qty">
             </td>

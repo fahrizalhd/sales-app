@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\Blameable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * Class Sale
@@ -20,6 +23,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Sale extends Model
 {
+    use SoftDeletes, Blameable, HasFactory;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -31,8 +36,6 @@ class Sale extends Model
         'customer_name',
         'total_amount',
         'is_paid',
-        'created_by',
-        'updated_by',
     ];
 
     /**
@@ -49,9 +52,23 @@ class Sale extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function items()
+    public function saleItems()
     {
         return $this->hasMany(SaleItem::class);
+    }
+
+    /**
+     * Get the user who created the item.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     /**
@@ -76,5 +93,22 @@ class Sale extends Model
         }
 
         return "{$prefix}-{$date}-{$counter}";
+    }
+
+    /**
+     * Model booted events.
+     *
+     * - Automatically generate an invoice number when creating a Sale. // removed temporary
+     * - Cascade soft delete to related SaleItems when deleting a Sale.
+     */
+    public static function booted()
+    {
+        // static::creating(function ($sale) {
+        //     $sale->invoice_number->self::generateInvoiceNumber();
+        // });
+
+        static::deleting(function ($sale) {
+            $sale->saleItems->each->delete();
+        });
     }
 }

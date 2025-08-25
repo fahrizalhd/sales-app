@@ -150,7 +150,7 @@
                                             {{ $history->reason }}
                                         </p>
                                         <p class="text-xs text-gray-500 truncate">
-                                            {{ $history->createdBy?->name }}
+                                            {{ $history->createdBy?->name }} ({{ $history->createdBy?->role }})
                                         </p>
                                     </div>
                                     <div class="inline-flex items-center text-base font-semibold text-gray-900">

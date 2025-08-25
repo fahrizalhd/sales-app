@@ -24,14 +24,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($users as $user)
+                        @forelse($users as $user)
                         <tr data-href="{{ route('users.edit', $user) }}" class="bg-white border-b border-gray-200 hover:bg-gray-50 cursor-pointer">
                             <td class="px-6 py-4 text-left">{{ $user->name }}</th>
                             <td class="px-6 py-4">{{ $user->email }}</td>
                             <td class="px-6 py-4">{{ \App\Enums\UserRole::tryFrom($user->role->value)?->label() ?? 'Unknown' }}</td>
                             <td class="px-6 py-4">
                                 @if($user->last_login_at)
-                                <span class="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center gap-2 px-2.5 py-0.5 rounded-sm">
+                                <span class="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center gap-2 px-2 py-1 rounded-sm">
                                     <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                                         <path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm11-4a1 1 0 1 0-2 0v4a1 1 0 0 0 .293.707l3 3a1 1 0 0 0 1.414-1.414L13 11.586V8Z" clip-rule="evenodd" />
                                     </svg>
@@ -48,7 +48,9 @@
                                 </form>
                             </td>
                         </tr>
-                        @endforeach
+                        @empty
+                        <tr><td colspan="5" class="px-6 py-4 text-center text-gray-500 italic">No users found</td></tr>
+                        @endforelse
                     </tbody>
                 </table>
                 <!-- Pagination -->

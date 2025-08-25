@@ -44,7 +44,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('items', ItemController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 
     // Sale management routes
-    Route::resource('sales', SaleController::class)->only(['index', 'create', 'store', 'edit', 'destroy']);
+    Route::resource('sales', SaleController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 });
 
 require __DIR__ . '/auth.php';

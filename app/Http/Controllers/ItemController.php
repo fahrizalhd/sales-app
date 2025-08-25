@@ -46,6 +46,7 @@ class ItemController extends Controller
                 'price',
                 'quantity',
                 'is_active',
+                'updated_at',
                 AllowedSort::callback('category', function ($query, $descending, $property) {
                     $query
                         ->join('categories', 'items.category_id', '=', 'categories.id')
@@ -106,8 +107,6 @@ class ItemController extends Controller
         ]);
 
         // Create a new item
-        $loggedUser = Auth::user();
-
         $item = Item::create([
             'name' => $request->input('name'),
             'sku' => $request->input('sku'),
@@ -119,8 +118,6 @@ class ItemController extends Controller
                 : null,
             'is_active' => $request->input('is_active', true),
             'category_id' => $request->input('category_id'),
-            'created_by' => $loggedUser->id,
-            'updated_by' => $loggedUser->id,
         ]);
 
         // Redirect to the items index with a success message
@@ -171,7 +168,6 @@ class ItemController extends Controller
      */
     public function update(Request $request, Item $item)
     {
-        $loggedUser = Auth::user();
         $oldQty = $item->quantity;
 
         // Validate the request data
@@ -210,7 +206,6 @@ class ItemController extends Controller
             'is_active' => $request->boolean('is_active'),
             'category_id' => $request->category_id,
             'updated_at' => now(),
-            'updated_by' => $loggedUser->id,
         ]);
 
         $item->refresh();
@@ -223,8 +218,6 @@ class ItemController extends Controller
                 'old_quantity' => $oldQty,
                 'new_quantity' => $item->quantity,
                 'reason' => 'Stock Update',
-                'created_by' => $loggedUser->id,
-                'updated_by' => $loggedUser->id,
             ]);
         }
 

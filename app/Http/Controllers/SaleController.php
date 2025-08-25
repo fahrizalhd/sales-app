@@ -23,12 +23,20 @@ class SaleController extends Controller
             ->allowedFilters([
                 AllowedFilter::callback('search', function ($query, $value) {
                     $query->where('invoice_number', 'like', "%{$value}%");
-                })
+                }),
+                AllowedFilter::callback('start_date', function ($query, $value) {
+                    $query->whereDate('created_at', '>=', $value);
+                }),
+                AllowedFilter::callback('end_date', function ($query, $value) {
+                    $query->whereDate('created_at', '<=', $value);
+                }),
             ])
             ->allowedSorts([
                 'total_amount',
-                'is_paid'
+                'is_paid',
+                'created_at',
             ])
+            ->latest()
             ->paginate(10)
             ->withQueryString();
 
@@ -59,9 +67,9 @@ class SaleController extends Controller
         $request->validate([
             'invoice_number'   => 'required|string|unique:sales,invoice_number',
             'customer_name'    => 'required|string|max:255',
-            'items'            => 'required|array|min:1',
-            'items.*.id'       => 'required|exists:items,id',
-            'items.*.qty'      => 'required|integer|min:1',
+            'saleItems'        => 'required|array|min:1',
+            'saleItems.*.id'   => 'required|exists:items,id',
+            'saleItems.*.qty'  => 'required|integer|min:1',
         ]);
 
         $loggedUser = Auth::user();
@@ -79,7 +87,7 @@ class SaleController extends Controller
 
                 $total = 0;
 
-                foreach ($request->items as $data) {
+                foreach ($request->saleItems as $data) {
                     $item = Item::findOrFail($data['id']);
 
                     if ($data['qty'] > $item->quantity) {
@@ -88,7 +96,7 @@ class SaleController extends Controller
 
                     $subtotal = $item->price * $data['qty'];
 
-                    $sale->items()->create([
+                    $sale->saleItems()->create([
                         'item_id'       => $item->id,
                         'quantity'      => $data['qty'],
                         'price'         => $item->price,
@@ -105,7 +113,99 @@ class SaleController extends Controller
 
             return redirect()->route('sales.index')->with('success', 'Sale created successfully (waiting for payment).');
         } catch (\Exception $e) {
-            return redirect()->back()->withInput()->withErrors(['items' => $e->getMessage()]);
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
+    }
+
+    /**
+     * Show the form for editing the specified item.
+     *
+     * @param  string  $id
+     * @return \Illuminate\View\View
+     */
+    public function edit(string $id)
+    {
+        $sale = Sale::with(['saleItems.item', 'createdBy', 'updatedBy'])
+            ->findOrFail($id);
+
+        $items = Item::where('is_active', true)->get();
+
+        return view('sales.edit', compact('sale', 'items'));
+    }
+
+    /**
+     * Update the specified sale in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  string  $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function update(Request $request, string $id)
+    {
+        $request->validate([
+            'customer_name'    => 'required|string|max:255',
+            'saleItems'        => 'required|array|min:1',
+            'saleItems.*.id'   => 'required|exists:items,id',
+            'saleItems.*.qty'  => 'required|integer|min:1',
+        ]);
+
+        $loggedUser = Auth::user();
+
+        try {
+            $sale = DB::transaction(function () use ($request, $id, $loggedUser) {
+                $sale = Sale::with('saleItems')->findOrFail($id);
+
+                $sale->update([
+                    'customer_name'  => $request->customer_name,
+                    'updated_by'     => $loggedUser->id,
+                ]);
+
+                $sale->saleItems()->delete();
+
+                $total = 0;
+
+                foreach ($request->saleItems as $data) {
+                    $item = Item::findOrFail($data['id']);
+
+                    if ($data['qty'] > $item->quantity) {
+                        throw new \Exception("Insufficient stock for {$item->name} (available: {$item->quantity}).");
+                    }
+
+                    $subtotal = $item->price * $data['qty'];
+
+                    $sale->saleItems()->create([
+                        'item_id'    => $item->id,
+                        'quantity'   => $data['qty'],
+                        'price'      => $item->price,
+                        'subtotal'   => $subtotal,
+                        'created_by' => $loggedUser->id,
+                        'updated_by' => $loggedUser->id,
+                    ]);
+
+                    $total += $subtotal;
+                }
+
+                $sale->update(['total_amount' => $total]);
+
+                return $sale;
+            });
+
+            return redirect()->route('sales.index')->with('success', "Sale: {$sale->invoice_number} updated successfully.");
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        $sale = Sale::findOrFail($id);
+        $sale->delete();
+
+        return redirect()
+            ->route('sales.index')
+            ->with('success', "{$sale->invoice_number} deleted successfully.");
     }
 }

@@ -2,9 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
+use App\Models\Sale;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Auth;
 
 class DatabaseSeeder extends Seeder
 {
@@ -17,11 +19,17 @@ class DatabaseSeeder extends Seeder
 
         // Call the UserSeeder to seed users
         $this->call(UserSeeder::class);
-        
+
         // Call the CategorySeeder to seed categories
         $this->call(CategorySeeder::class);
-        
+
         // Call the ItemSeeder to seed items
         $this->call(ItemSeeder::class);
+
+        // Call the SaleFactory to seed sales
+        $randomUser = User::where('role', UserRole::USER->value)->inRandomOrder()->first();
+        Auth::login($randomUser);
+        Sale::factory()->count(100)->create();
+        Auth::logout();
     }
 }

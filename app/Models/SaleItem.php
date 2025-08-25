@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\Blameable;
 
 /**
  * Class SaleItem
@@ -22,6 +24,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class SaleItem extends Model
 {
+    use Blameable;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -34,8 +38,6 @@ class SaleItem extends Model
         'quantity',
         'price',
         'subtotal',
-        'created_by',
-        'updated_by',
     ];
 
     /**

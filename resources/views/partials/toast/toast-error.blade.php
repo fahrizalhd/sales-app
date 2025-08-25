@@ -6,7 +6,7 @@
             <path d="M18 10A8 8 0 1 1 2 10a8 8 0 0 1 16 0Zm-9-4a1 1 0 1 0 2 0 1 1 0 0 0-2 0ZM9 9a1 1 0 0 0 0 2v3a1 1 0 0 0 2 0v-3a1 1 0 0 0-2-2Z"/>
         </svg>
     </div>
-    <div class="ml-3 text-sm font-normal">{{ $message }}</div>
+    <div class="ml-3 text-md font-semibold">{{ $message }}</div>
     <button @click="show = false" type="button"
         class="ml-auto -mx-1.5 -my-1.5 text-gray-400 hover:text-gray-900 p-1.5 hover:bg-gray-100 rounded-lg focus:ring-2 focus:ring-gray-300 inline-flex items-center justify-center h-8 w-8"
         aria-label="Close">
