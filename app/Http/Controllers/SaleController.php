@@ -22,7 +22,8 @@ class SaleController extends Controller
         $sales = QueryBuilder::for(Sale::class)
             ->allowedFilters([
                 AllowedFilter::callback('search', function ($query, $value) {
-                    $query->where('invoice_number', 'like', "%{$value}%");
+                    $query->where('invoice_number', 'like', "%{$value}%")
+                        ->orWhere('customer_name', 'like', "%{$value}%");
                 }),
                 AllowedFilter::callback('start_date', function ($query, $value) {
                     $query->whereDate('created_at', '>=', $value);
@@ -30,8 +31,11 @@ class SaleController extends Controller
                 AllowedFilter::callback('end_date', function ($query, $value) {
                     $query->whereDate('created_at', '<=', $value);
                 }),
+                //For Quick Filter
+                AllowedFilter::exact('is_paid'),
             ])
             ->allowedSorts([
+                'customer_name',
                 'total_amount',
                 'is_paid',
                 'created_at',

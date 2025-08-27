@@ -19,10 +19,30 @@ class SaleFactory extends Factory
      * @return array<string, mixed>
      */
     protected static array $counters = [];
+    protected static array $customers = [
+        'Haris Pratama',
+        'Alya Putri',
+        'Budi Santoso',
+        'Citra Dewi',
+        'Deni Nugroho',
+        'Eka Lestari',
+        'Fajar Ramadhan',
+        'Gina Maharani',
+        'Hadi Setiawan',
+        'Intan Permata',
+    ];
+
+    private function getRandomCustomer(): string
+    {
+        if (mt_rand(1, 100) <= 60) {
+            return self::$customers[array_rand(self::$customers)];
+        }
+        return $this->faker->name();
+    }
 
     public function definition(): array
     {
-        $dateTime = $this->faker->dateTimeBetween('-2 months', 'now');
+        $dateTime = $this->faker->dateTimeBetween('-6 months', 'now');
         $dateForInvoice = $dateTime->format('Ymd');
 
         if (!isset(self::$counters[$dateForInvoice])) {
@@ -35,9 +55,9 @@ class SaleFactory extends Factory
 
         return [
             'invoice_number' => $invoiceNumber,
-            'customer_name' => $this->faker->name(),
+            'customer_name' => $this->getRandomCustomer(),
             'total_amount' => 0,
-            'is_paid' => false,
+            'is_paid' => rand(true, false),
             'created_at' => $dateTime,
             'updated_at' => $dateTime,
         ];

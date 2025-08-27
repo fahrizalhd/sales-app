@@ -6,16 +6,39 @@
     <div class="py-4">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="flex justify-between mb-4">
-                <form method="GET" action="{{ route('sales.index') }}" class="flex items-center space-x-2">
-                    <input type="text" name="filter[search]" value="{{ request('filter.search') }}" placeholder="Search..."
-                        class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder-gray-400">
-                    <input type="date" name="filter[start_date]" value="{{ request('filter.start_date') }}"
-                        class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5">
-                    <span>to</span>
-                    <input type="date" name="filter[end_date]" value="{{ request('filter.end_date') }}"
-                        class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5">
-                    <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5">Search</button>
-                </form>
+                <div class="flex justify-start gap-4">
+                    <form method="GET" action="{{ route('sales.index') }}" class="flex items-center space-x-2">
+                        <input type="text" name="filter[search]" value="{{ request('filter.search') }}" placeholder="Search..."
+                            class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder-gray-400">
+                        <input type="date" name="filter[start_date]" value="{{ request('filter.start_date') }}"
+                            class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5">
+                        <span>to</span>
+                        <input type="date" name="filter[end_date]" value="{{ request('filter.end_date') }}"
+                            class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5">
+                        <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5">Search</button>
+                    </form>
+
+                    <div class="flex items-center justify-start gap-2">
+                        <span class="font-medium text-sm">Quick Filter:</span>
+                        <div x-data="{ isUnpaid: {{ request("filter.is_paid", 1) == 0 ? "true" : "false" }} }">
+                            <button @click="
+                                isUnpaid = !isUnpaid;
+                                let url = new URL(window.location.href);
+                                url.searchParams.delete('page');
+                                if (isUnpaid) {
+                                    url.searchParams.set('filter[is_paid]', '0');
+                                } else {
+                                    url.searchParams.delete('filter[is_paid]');
+                                }
+                                window.location.href = url.toString();
+                                "
+                                :class="isUnpaid ? 'bg-red-200 text-red-600' : 'bg-grey-200 text-gray-700 hover:bg-red-200 hover:text-red-600'"
+                                class="px-3 py-2 rounded-full text-xs flex items-center justify center whitespace-nowrap" type="button">
+                                Not Yet Paid
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
                 <a href="{{ route('sales.create') }}"
                     class="flex items-center gap-1 focus:outline-none text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5">
@@ -31,7 +54,7 @@
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
                             <th scope="col" class="px-6 py-3 text-left">Invoice Number</th>
-                            <th scope="col" class="px-6 py-3">Customer</th>
+                            <th scope="col" class="px-6 py-3"><x-sort-link column="customer_name" label="Customer"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="created_at" label="Date"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="total_amount" label="Total"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="is_paid" label="Status"></x-sort-link></th>

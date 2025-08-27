@@ -48,16 +48,20 @@
                                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 item-select">
                                                     <option value="">-- Select Item --</option>
                                                     @foreach ($items as $item)
-                                                    <option value="{{ $item->id }}" data-price="{{ $item->price }}"
-                                                        {{ (isset($oldItem['id']) && $oldItem['id'] == $item->id) ? 'selected' : '' }}>
-                                                        {{ $item->name }} ({{ $item->quantity }})
+                                                    <option value="{{ $item->id }}" 
+                                                            data-price="{{ $item->price }}" 
+                                                            data-stock="{{ $item->quantity }}"
+                                                            {{ (isset($oldItem['id']) && $oldItem['id'] == $item->id) ? 'selected' : '' }}>
+                                                        {{ $item->name }} (Left: {{ $item->quantity }})
                                                     </option>
                                                     @endforeach
                                                 </select>
                                             </td>
                                             <td class="px-4 py-2">
-                                                <input type="number" name="saleItems[{{ $index }}][qty]"
-                                                    value="{{ $oldItem['qty'] ?? 1 }}" min="1"
+                                                <input type="number" 
+                                                    name="saleItems[{{ $index }}][qty]"
+                                                    value="{{ $oldItem['qty'] ?? 1 }}" 
+                                                    min="1"
                                                     class="w-16 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 item-qty">
                                             </td>
                                             <td class="px-4 py-2 item-price">{{ format_rupiah(0) }}</td>
@@ -78,7 +82,7 @@
                             </div>
                             <div class="flex justify-between items-center">
                                 <div>
-                                    @error("items")
+                                    @error('saleItems')
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
                                 </div>
@@ -204,4 +208,25 @@
     });
 
     updateTotal();
+
+    document.addEventListener("DOMContentLoaded", function () {
+        function updateQtyMax(selectEl) {
+            const selectedOption = selectEl.options[selectEl.selectedIndex];
+            const stock = selectedOption.getAttribute("data-stock") || 1;
+            const qtyInput = selectEl.closest("tr").querySelector(".item-qty");
+
+            qtyInput.max = stock;
+            if (parseInt(qtyInput.value) > stock) {
+                qtyInput.value = stock;
+            }
+        }
+
+        document.querySelectorAll(".item-select").forEach(function (selectEl) {
+            updateQtyMax(selectEl);
+
+            selectEl.addEventListener("change", function () {
+                updateQtyMax(this);
+            });
+        });
+    });
 </script>

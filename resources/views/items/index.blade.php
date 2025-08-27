@@ -6,7 +6,7 @@
     <div class="py-4">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="flex justify-between mb-4">
-                <div class="inline-flex justify-start gap-4">
+                <div class="flex justify-start gap-4">
                     <form method="GET" action="{{ route("items.index") }}" class="flex items-center space-x-2">
                         <input type="text" name="filter[search]" value="{{ request("filter.search") }}" placeholder="Search..."
                             class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder-gray-400" />

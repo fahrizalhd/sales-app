@@ -56,18 +56,15 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast to native types.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'role' => UserRole::class, // Cast role to UserRole enum
-            'last_login_at' => 'datetime',
-            'last_login_ip' => 'string',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password'          => 'hashed',
+        'role'              => UserRole::class, // Cast role to UserRole enum
+        'last_login_at'     => 'datetime',
+        'last_login_ip'     => 'string',
+    ];
 }
