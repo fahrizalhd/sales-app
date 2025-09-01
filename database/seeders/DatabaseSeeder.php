@@ -27,9 +27,9 @@ class DatabaseSeeder extends Seeder
         $this->call(ItemSeeder::class);
 
         // Call the SaleFactory to seed sales
-        $randomUser = User::where('role', UserRole::USER->value)->inRandomOrder()->first();
-        Auth::login($randomUser);
-        Sale::factory()->count(1000)->create();
-        Auth::logout();
+        // $randomUser = User::where('role', UserRole::USER->value)->inRandomOrder()->first();
+        // Auth::login($randomUser);
+        // Sale::factory()->count(10)->create();
+        // Auth::logout();
     }
 }

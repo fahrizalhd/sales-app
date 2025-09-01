@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('stock_histories', function (Blueprint $table) {
+        Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('item_id')->constrained()->onDelete('cascade');
-            $table->integer('change');
-            $table->integer('old_quantity');
-            $table->integer('new_quantity');
-            $table->string('reason')->nullable();
+            $table->foreignId('sale_id')->constrained()->onDelete('cascade');
+            $table->enum('method', ['CASH', 'DEBIT', 'QRIS'])->default('CASH');
+            $table->decimal('amount', 12, 2);
+            $table->enum('status', ['SUCCESS', 'PENDING', 'FAILED'])->default('PENDING');
+            $table->string('payment_reference')->nullable();
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->foreignId('updated_by')->constrained('users')->onDelete('cascade');
             $table->timestamps();
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('stock_histories');
+        Schema::dropIfExists('payments');
     }
 };

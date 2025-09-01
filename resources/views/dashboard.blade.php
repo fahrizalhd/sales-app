@@ -21,7 +21,7 @@
                         <div class="border-r-2">
                             <span class="block text-gray-500 text-sm">This Month</span>
                             @php
-                                $isUp = $thisMonthRevenue >= $lastMonthRevenue;
+                                $isUp = $thisMonthRevenue > $lastMonthRevenue;
                                 $percentage = $lastMonthRevenue > 0 
                                     ? round((($thisMonthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100, 1) 
                                     : 100;

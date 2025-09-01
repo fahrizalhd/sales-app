@@ -27,8 +27,6 @@ class Sale extends Model
 
     /**
      * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
      */
     protected $fillable =
     [
@@ -40,8 +38,6 @@ class Sale extends Model
 
     /**
      * The attributes that should be cast to native types.
-     *
-     * @var array<string, string>
      */
     protected $casts = [
         'is_paid' => 'boolean',
@@ -49,8 +45,6 @@ class Sale extends Model
 
     /**
      * Get the sale items for this sale.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function saleItems()
     {
@@ -58,23 +52,31 @@ class Sale extends Model
     }
 
     /**
-     * Get the user who created the item.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */    public function createdBy()
+     * Get the user who created the sale.
+     */
+    public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    /**
+     * Get the user who last updated the sale.
+     */
     public function updatedBy()
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
 
     /**
+     * Get the list of payments associated with the sale.
+     */
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    /**
      * Generate a unique invoice number for the sale.
-     *
-     * @return string
      */
     public static function generateInvoiceNumber(): string
     {

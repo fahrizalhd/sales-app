@@ -29,8 +29,6 @@ class Category extends Model
 
     /**
      * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
      */
     protected $fillable = [
         'name',
@@ -39,8 +37,6 @@ class Category extends Model
 
     /**
      * Get the items for this category.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function items()
     {
@@ -49,8 +45,6 @@ class Category extends Model
 
     /**
      * Get the user who created this category.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function createdBy()
     {
@@ -59,8 +53,6 @@ class Category extends Model
 
     /**
      * Get the user who last updated this category.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function updatedBy()
     {

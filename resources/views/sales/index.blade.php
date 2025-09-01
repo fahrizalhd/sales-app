@@ -32,9 +32,9 @@
                                 }
                                 window.location.href = url.toString();
                                 "
-                                :class="isUnpaid ? 'bg-red-200 text-red-600' : 'bg-grey-200 text-gray-700 hover:bg-red-200 hover:text-red-600'"
+                                :class="isUnpaid ? 'bg-yellow-200 text-yellow-600' : 'bg-grey-200 text-gray-700 hover:bg-yellow-200 hover:text-ywllow-600'"
                                 class="px-3 py-2 rounded-full text-xs flex items-center justify center whitespace-nowrap" type="button">
-                                Not Yet Paid
+                                Waiting for Payment
                             </button>
                         </div>
                     </div>
@@ -72,10 +72,11 @@
                                 @if ($sale->is_paid)
                                 <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-1 rounded-full">Paid</span>
                                 @else
-                                <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-1 rounded-full">Not Yet Paid</span>
+                                <span class="bg-yellow-200 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded-full">Waiting for Payment</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4 flex justify-center gap-4">
+                                <a href="{{ route('sales.payments.create', $sale->id) }}" class="text-blue-500">Pay</a>
                                 <form action="{{ route('sales.destroy', $sale) }}" method="POST" class="inline ml-2" onsubmit="return confirm('Delete sale?')">
                                     @csrf @method('DELETE')
                                     <button class="text-red-500">Delete</button>

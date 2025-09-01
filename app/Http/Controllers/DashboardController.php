@@ -18,6 +18,11 @@ class DashboardController extends Controller
      */
     public function index()
     {
+        $loggedUser = Auth::user();
+        if ($loggedUser->role === UserRole::USER) {
+            return redirect()->back()->with('error', 'You do not have permission to access this page.');
+        }
+        
         $now = Carbon::now();
 
         $thisWeekRevenue = Sale::whereBetween('created_at', [

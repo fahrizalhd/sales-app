@@ -28,8 +28,6 @@ class SaleItem extends Model
 
     /**
      * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
      */
     protected $fillable =
     [
@@ -42,8 +40,6 @@ class SaleItem extends Model
 
     /**
      * Get the sale that owns this sale item.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function sale()
     {
@@ -52,8 +48,6 @@ class SaleItem extends Model
 
     /**
      * Get the item associated with this sale item.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function item()
     {

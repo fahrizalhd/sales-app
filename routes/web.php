@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SaleController;
 use Illuminate\Support\Facades\Route;
 
@@ -46,6 +47,12 @@ Route::middleware('auth')->group(function () {
 
     // Sale management routes
     Route::resource('sales', SaleController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+
+    // Nested payments under sales
+    Route::prefix('sales/{sale}')->name('sales.')->group(function () {
+        Route::get('payments/create', [PaymentController::class, 'create'])->name('payments.create');
+        Route::post('payments', [PaymentController::class, 'store'])->name('payments.store');
+    });
 });
 
 require __DIR__ . '/auth.php';

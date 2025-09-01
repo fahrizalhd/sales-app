@@ -29,8 +29,6 @@ class StockHistory extends Model
     
     /**
      * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
      */
     protected $fillable = [
         'item_id',
@@ -42,17 +40,14 @@ class StockHistory extends Model
 
     /**
      * Get the item associated with this stock history.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */    public function item()
+     */    
+    public function item()
     {
         return $this->belongsTo(Item::class, 'item_id');
     }
 
     /**
      * Get the user who created this stock history record.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function createdBy()
     {
@@ -61,8 +56,6 @@ class StockHistory extends Model
 
     /**
      * Get the user who last updated this stock history record.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function updatedBy()
     {

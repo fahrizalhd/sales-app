@@ -35,8 +35,6 @@ class Item extends Model
 
     /**
      * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
      */
     protected $fillable = [
         'name',
@@ -51,8 +49,6 @@ class Item extends Model
 
     /**
      * The attributes that should be cast to native types.
-     *
-     * @var array<string, string>
      */
     protected $casts = [
         'price'     => 'decimal:2',
@@ -61,17 +57,14 @@ class Item extends Model
 
     /**
      * Get the user who created the item.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */    public function createdBy()
+     */    
+    public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
      * Get the user who last updated the item.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function updatedBy()
     {
@@ -80,8 +73,6 @@ class Item extends Model
 
     /**
      * Get the stock histories for the item.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function stockHistories()
     {
@@ -90,8 +81,6 @@ class Item extends Model
 
     /**
      * Get the category that the item belongs to.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function category()
     {
@@ -102,8 +91,6 @@ class Item extends Model
 
     /**
      * Generate a unique SKU for the item.
-     *
-     * @return string
      */
     public static function generateSku()
     {
