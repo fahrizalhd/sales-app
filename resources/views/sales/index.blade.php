@@ -15,29 +15,15 @@
                         <span>to</span>
                         <input type="date" name="filter[end_date]" value="{{ request('filter.end_date') }}"
                             class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5">
+                        <select name="filter[status]"
+                            class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5">
+                            <option value="">All Status</option>
+                            @foreach (\App\Enums\SaleStatus::cases() as $status)
+                            <option value="{{ $status->value }}" @selected(request('filter.status')===$status->value)> {{ $status->label() }}</option>
+                            @endforeach
+                        </select>
                         <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5">Search</button>
                     </form>
-
-                    <div class="flex items-center justify-start gap-2">
-                        <span class="font-medium text-sm">Quick Filter:</span>
-                        <div x-data="{ isUnpaid: {{ request("filter.is_paid", 1) == 0 ? "true" : "false" }} }">
-                            <button @click="
-                                isUnpaid = !isUnpaid;
-                                let url = new URL(window.location.href);
-                                url.searchParams.delete('page');
-                                if (isUnpaid) {
-                                    url.searchParams.set('filter[is_paid]', '0');
-                                } else {
-                                    url.searchParams.delete('filter[is_paid]');
-                                }
-                                window.location.href = url.toString();
-                                "
-                                :class="isUnpaid ? 'bg-yellow-200 text-yellow-600' : 'bg-grey-200 text-gray-700 hover:bg-yellow-200 hover:text-ywllow-600'"
-                                class="px-3 py-2 rounded-full text-xs flex items-center justify center whitespace-nowrap" type="button">
-                                Waiting for Payment
-                            </button>
-                        </div>
-                    </div>
                 </div>
 
                 <a href="{{ route('sales.create') }}"
@@ -57,7 +43,7 @@
                             <th scope="col" class="px-6 py-3"><x-sort-link column="customer_name" label="Customer"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="created_at" label="Date"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="total_amount" label="Total"></x-sort-link></th>
-                            <th scope="col" class="px-6 py-3"><x-sort-link column="is_paid" label="Status"></x-sort-link></th>
+                            <th scope="col" class="px-6 py-3"><x-sort-link column="status" label="Status"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"></th>
                         </tr>
                     </thead>
@@ -68,15 +54,24 @@
                             <td class="px-6 py-4">{{ $sale->customer_name }}</th>
                             <td class="px-6 py-4 font-semibold">{{ format_date_with_time($sale->created_at) }}</th>
                             <td class="px-6 py-4">{{ format_rupiah($sale->total_amount) }}</td>
+                            @php
+                                $colors = [
+                                    \App\Enums\SaleStatus::PAID->value => 'bg-green-100 text-green-800',
+                                    \App\Enums\SaleStatus::PARTIALLY_PAID->value => 'bg-blue-100 text-blue-800',
+                                    \App\Enums\SaleStatus::UNPAID->value => 'bg-yellow-100 text-yellow-800',
+                                    \App\Enums\SaleStatus::NEED_REVIEW->value => 'bg-orange-100 text-orange-800',
+                                    \App\Enums\SaleStatus::CANCELLED->value => 'bg-red-100 text-red-800',
+                                ];
+                            @endphp
                             <td class="px-6 py-4">
-                                @if ($sale->is_paid)
-                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-1 rounded-full">Paid</span>
-                                @else
-                                <span class="bg-yellow-200 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded-full">Waiting for Payment</span>
-                                @endif
+                                <span class="{{ $colors[$sale->status->value] }} text-xs font-medium px-2.5 py-1 rounded-full">
+                                    {{ $sale->status->label() }}
+                                </span>
                             </td>
                             <td class="px-6 py-4 flex justify-center gap-4">
-                                <a href="{{ route('sales.payments.create', $sale->id) }}" class="text-blue-500">Pay</a>
+                                @if ($sale->status === \App\Enums\SaleStatus::UNPAID || $sale->status === \App\Enums\SaleStatus::PARTIALLY_PAID)
+                                    <a href="{{ route('sales.payments.create', $sale->id) }}" class="text-blue-500">Pay</a>
+                                @endif
                                 <form action="{{ route('sales.destroy', $sale) }}" method="POST" class="inline ml-2" onsubmit="return confirm('Delete sale?')">
                                     @csrf @method('DELETE')
                                     <button class="text-red-500">Delete</button>

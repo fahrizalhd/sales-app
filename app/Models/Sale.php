@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\SaleStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\Blameable;
@@ -33,14 +34,14 @@ class Sale extends Model
         'invoice_number',
         'customer_name',
         'total_amount',
-        'is_paid',
+        'status',
     ];
 
     /**
      * The attributes that should be cast to native types.
      */
     protected $casts = [
-        'is_paid' => 'boolean',
+        'status' => SaleStatus::class,
     ];
 
     /**
@@ -49,6 +50,14 @@ class Sale extends Model
     public function saleItems()
     {
         return $this->hasMany(SaleItem::class);
+    }
+
+    /**
+     * Get the list of payments associated with the sale.
+     */
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
     }
 
     /**
@@ -65,14 +74,6 @@ class Sale extends Model
     public function updatedBy()
     {
         return $this->belongsTo(User::class, 'updated_by');
-    }
-
-    /**
-     * Get the list of payments associated with the sale.
-     */
-    public function payments()
-    {
-        return $this->hasMany(Payment::class);
     }
 
     /**
@@ -111,6 +112,7 @@ class Sale extends Model
 
         static::deleting(function ($sale) {
             $sale->saleItems->each->delete();
+            $sale->payments->each->delete();
         });
     }
 }

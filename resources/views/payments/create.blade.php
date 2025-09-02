@@ -62,8 +62,7 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Amount</label>
-                                <input type="number" name="amount"
-                                    value="{{ old('amount', $sale->total_amount) }}" required step="100"
+                                <input type="number" name="amount" value="{{ old('amount', $sale->total_amount) }}" required readonly
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 @error('amount') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>

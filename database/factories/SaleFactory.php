@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\SaleStatus;
 use App\Models\Item;
 use App\Models\Sale;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -54,12 +55,12 @@ class SaleFactory extends Factory
         $invoiceNumber = 'INV-' . $dateForInvoice . '-' . str_pad(self::$counters[$dateForInvoice], 4, '0', STR_PAD_LEFT);
 
         return [
-            'invoice_number' => $invoiceNumber,
-            'customer_name' => $this->getRandomCustomer(),
-            'total_amount' => 0,
-            'is_paid' => rand(true, false),
-            'created_at' => $dateTime,
-            'updated_at' => $dateTime,
+            'invoice_number'    => $invoiceNumber,
+            'customer_name'     => $this->getRandomCustomer(),
+            'total_amount'      => 0,
+            'status'            => SaleStatus::UNPAID->value,
+            'created_at'        => $dateTime,
+            'updated_at'        => $dateTime,
         ];
     }
 

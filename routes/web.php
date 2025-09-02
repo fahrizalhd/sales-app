@@ -48,6 +48,10 @@ Route::middleware('auth')->group(function () {
     // Sale management routes
     Route::resource('sales', SaleController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 
+    // Payment management routes
+    Route::resource('payments', PaymentController::class)->only(['index', 'show', 'destroy']);
+    Route::get('payments/{payment}/print', [PaymentController::class, 'print'])->name('payments.print');
+    
     // Nested payments under sales
     Route::prefix('sales/{sale}')->name('sales.')->group(function () {
         Route::get('payments/create', [PaymentController::class, 'create'])->name('payments.create');

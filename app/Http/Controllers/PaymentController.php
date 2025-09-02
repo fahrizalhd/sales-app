@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
+use App\Enums\SaleStatus;
 use App\Models\Item;
 use App\Models\Payment;
 use App\Models\Sale;
@@ -12,12 +13,50 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Enum;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class PaymentController extends Controller
 {
+    public function index()
+    {
+        $payments = QueryBuilder::for(Payment::class)
+            ->allowedFilters([
+                AllowedFilter::callback('search', function ($query, $value) {
+                    $query->whereHas('sale', function ($q) use ($value) {
+                        $q->where('invoice_number', 'like', "%{$value}%")
+                            ->orWhere('customer_name', 'like', "%{$value}%");
+                    })
+                        ->orWhere('method', 'like', "%{$value}%")
+                        ->orWhere('status', 'like', "%{$value}%");
+                }),
+                AllowedFilter::callback('start_date', function ($query, $value) {
+                    $query->whereDate('created_at', '>=', $value);
+                }),
+                AllowedFilter::callback('end_date', function ($query, $value) {
+                    $query->whereDate('created_at', '<=', $value);
+                }),
+            ])
+            ->allowedSorts([
+                'amount',
+                'method',
+                'status',
+                'created_at',
+                'created_by',
+            ])
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('payments.index', compact('payments'));
+    }
     public function create(string $id)
     {
         $sale = Sale::with('saleItems.item')->findOrFail($id);
+        $saleStatus = $sale->status;
+        if ($saleStatus === SaleStatus::CANCELLED || $saleStatus === SaleStatus::PAID) {
+            return redirect()->route('sales.index')->with('error', 'Only UNPAID or PARTIALLY PAID sales can be proceed to payment.');
+        }
 
         return view('payments.create', compact('sale'));
     }
@@ -29,18 +68,15 @@ class PaymentController extends Controller
             'amount' => 'required|numeric|min:0',
         ]);
 
-        $status = $request->method === PaymentMethod::CASH->value
-            ? PaymentStatus::SUCCESS->value
-            : PaymentStatus::PENDING->value;
-
         $loggedUser = Auth::user();
 
-        DB::transaction(function () use ($request, $sale, $loggedUser, $status) {
+        DB::transaction(function () use ($request, $sale, $loggedUser) {
+            $paymentStatus = $request->method === PaymentMethod::CASH->value ? PaymentStatus::SUCCESS->value : PaymentStatus::PENDING->value;
             Payment::create([
                 'sale_id'       => $sale->id,
                 'amount'        => $request->amount,
                 'method'        => $request->method,
-                'status'        => $status,
+                'status'        => $paymentStatus,
                 'created_by'    => $loggedUser->id,
                 'updated_by'    => $loggedUser->id,
             ]);
@@ -49,19 +85,19 @@ class PaymentController extends Controller
                 ->where('reason', "Sale #{$sale->invoice_number}")
                 ->exists();
             if ($alreadyAdjusted) {
-                throw new \RuntimeException("Stock for this sale has already been adjusted.");
+                return redirect()->back()->with('warning', 'Stock for this sale has already been adjusted.');
             }
 
             foreach ($sale->saleItems as $saleItem) {
                 $item = Item::WhereKey($saleItem->item_id)->lockForUpdate()->first();
                 if (!$item) {
-                    throw new \RuntimeException("Item not found (ID: {$saleItem->item_id}, SKU: {$saleItem->item->sku})");
+                    return redirect()->back()->with('warning', "Item not found (ID: {$saleItem->item_id}, SKU: {$saleItem->item->sku})");
                 }
 
                 $oldQty = (int) $item->quantity;
                 $decrease = (int) $saleItem->quantity;
                 if ($oldQty < $decrease) {
-                    throw new \RuntimeException("Insufficient stock for {$item->name}. Available: {$oldQty}, required: {$decrease}.");
+                    return redirect()->back()->with('warning', "Insufficient stock for {$item->name}. Available: {$oldQty}, required: {$decrease}.");
                 }
 
                 $newQty = $oldQty - $decrease;
@@ -69,6 +105,7 @@ class PaymentController extends Controller
                     'quantity'      => $newQty,
                     'updated_by'    => $loggedUser->id,
                 ]);
+
                 StockHistory::create([
                     'item_id'       => $item->id,
                     'change'        => -$decrease,
@@ -80,16 +117,34 @@ class PaymentController extends Controller
                 ]);
             }
 
-            $totalPaid = $sale->payments()->where('status', PaymentStatus::SUCCESS->value)->sum('amount');
-            if ($totalPaid >= $sale->total_amount) {
+            if ($request->method === PaymentMethod::CASH->value) {
                 $sale->update([
-                    'is_paid'       => true,
-                    'updated_by'    => $loggedUser->id,
+                    'status'     => SaleStatus::PAID->value,
+                    'updated_by' => $loggedUser->id,
+                ]);
+            } elseif (in_array($request->method, [PaymentMethod::QRIS->value, PaymentMethod::DEBIT->value])) {
+                $sale->update([
+                    'status'     => SaleStatus::NEED_REVIEW->value,
+                    'updated_by' => $loggedUser->id,
                 ]);
             }
         });
 
         return redirect()->route('sales.index')
             ->with('success', "Payment for Invoice: #{$sale->invoice_number} has been recorded and stock updated.");
+    }
+
+    public function show(string $id)
+    {
+        $payment = Payment::with(['sale.saleItems.item', 'sale.createdBy'])->findOrFail($id);
+
+        return view('payments.show', compact('payment'));
+    }
+
+    public function print(string $id)
+    {
+        $payment = Payment::with(['sale.saleItems.item', 'sale.createdBy'])->findOrFail($id);
+
+        return view('payments.print', compact('payment'));
     }
 }

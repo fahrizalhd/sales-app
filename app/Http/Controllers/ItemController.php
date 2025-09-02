@@ -47,7 +47,7 @@ class ItemController extends Controller
                 'quantity',
                 'is_active',
                 'updated_at',
-                AllowedSort::callback('category', function ($query, $descending, $property) {
+                AllowedSort::callback('category', function ($query, $descending) {
                     $query
                         ->join('categories', 'items.category_id', '=', 'categories.id')
                         ->orderBy('categories.name', $descending ? 'desc' : 'asc')

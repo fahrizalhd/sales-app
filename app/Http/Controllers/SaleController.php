@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\SaleStatus;
 use App\Models\Item;
 use App\Models\Sale;
 use Illuminate\Http\Request;
@@ -31,13 +32,12 @@ class SaleController extends Controller
                 AllowedFilter::callback('end_date', function ($query, $value) {
                     $query->whereDate('created_at', '<=', $value);
                 }),
-                //For Quick Filter
-                AllowedFilter::exact('is_paid'),
+                AllowedFilter::exact('status'),
             ])
             ->allowedSorts([
                 'customer_name',
                 'total_amount',
-                'is_paid',
+                'status',
                 'created_at',
             ])
             ->latest()
@@ -84,7 +84,7 @@ class SaleController extends Controller
                     'invoice_number' => $request->invoice_number,
                     'customer_name'  => $request->customer_name,
                     'total_amount'   => 0,
-                    'is_paid'        => false,
+                    'status'         => SaleStatus::UNPAID,
                     'created_by'     => $loggedUser->id,
                     'updated_by'     => $loggedUser->id,
                 ]);
@@ -129,13 +129,16 @@ class SaleController extends Controller
      */
     public function edit(string $id)
     {
-        $sale = Sale::with(['saleItems.item', 'createdBy', 'updatedBy'])
-            ->findOrFail($id);
+        $sale = Sale::with(['saleItems.item'])->findOrFail($id);
+        if (!in_array($sale->status, [SaleStatus::UNPAID, SaleStatus::PARTIALLY_PAID])) {
+            return redirect()->route('sales.index')->with('error', 'Only UNPAID or PARTIALLY PAID sales can be edited.');
+        }
 
         $items = Item::where('is_active', true)->get();
 
         return view('sales.edit', compact('sale', 'items'));
     }
+
 
     /**
      * Update the specified sale in storage.
@@ -196,7 +199,7 @@ class SaleController extends Controller
 
             return redirect()->route('sales.index')->with('success', "Sale: {$sale->invoice_number} updated successfully.");
         } catch (\Exception $e) {
-            return redirect()->back()->withInput()->with('error', $e->getMessage());
+            return redirect()->route('sales.edit', $id)->withInput()->with('error', $e->getMessage());
         }
     }
 
