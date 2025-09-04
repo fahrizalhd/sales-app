@@ -17,8 +17,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  *
  * @property int $id
  * @property string $invoice_number
+ * @property string $customer_name
  * @property float $total_amount
- * @property bool $is_paid
+ * @property SaleStatus $status
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  */
@@ -29,8 +30,7 @@ class Sale extends Model
     /**
      * The attributes that are mass assignable.
      */
-    protected $fillable =
-    [
+    protected $fillable = [
         'invoice_number',
         'customer_name',
         'total_amount',
@@ -45,7 +45,7 @@ class Sale extends Model
     ];
 
     /**
-     * Get the sale items for this sale.
+     * Relationship: Get all sale items linked to this sale.
      */
     public function saleItems()
     {
@@ -53,7 +53,7 @@ class Sale extends Model
     }
 
     /**
-     * Get the list of payments associated with the sale.
+     * Relationship: Get all payments linked to this sale.
      */
     public function payments()
     {
@@ -61,7 +61,7 @@ class Sale extends Model
     }
 
     /**
-     * Get the user who created the sale.
+     * Relationship: Get the user who created this sale.
      */
     public function createdBy()
     {
@@ -69,7 +69,7 @@ class Sale extends Model
     }
 
     /**
-     * Get the user who last updated the sale.
+     * Relationship: Get the user who last updated this sale.
      */
     public function updatedBy()
     {
@@ -77,7 +77,7 @@ class Sale extends Model
     }
 
     /**
-     * Generate a unique invoice number for the sale.
+     * Generate a unique invoice number for a new sale.
      */
     public static function generateInvoiceNumber(): string
     {
@@ -99,15 +99,53 @@ class Sale extends Model
     }
 
     /**
+     * Get the list of statuses considered as "paid-like".
+     */
+    public static function paidStatuses(): array
+    {
+        return [
+            SaleStatus::PAID->value,
+            SaleStatus::PARTIALLY_PAID->value,
+            SaleStatus::NEED_REVIEW->value,
+        ];
+    }
+
+    /**
+     * Get the list of statuses considered as "unpaid-like".
+     */
+    public static function unpaidStatuses(): array
+    {
+        return [
+            SaleStatus::UNPAID->value,
+            SaleStatus::CANCELLED->value,
+        ];
+    }
+
+    /**
+     * Check if the current sale is considered as "paid-like".
+     */
+    public function isPaidLike(): bool
+    {
+        return in_array($this->status, self::paidStatuses());
+    }
+
+    /**
+     * Check if the current sale is considered as "unpaid-like".
+     */
+    public function isUnpaidLike(): bool
+    {
+        return in_array($this->status, self::unpaidStatuses());
+    }
+
+    /**
      * Model booted events.
      *
-     * - Automatically generate an invoice number when creating a Sale. // removed temporary
-     * - Cascade soft delete to related SaleItems when deleting a Sale.
+     * - Cascade soft deletes to related SaleItems and Payments.
      */
     public static function booted()
     {
         // static::creating(function ($sale) {
-        //     $sale->invoice_number->self::generateInvoiceNumber();
+        //     $sale->invoice_number = self::generateInvoiceNumber();
         // });
 
         static::deleting(function ($sale) {

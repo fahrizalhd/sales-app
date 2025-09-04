@@ -39,7 +39,7 @@
                                     <thead>
                                         <tr class="bg-gray-50">
                                             <th class="px-4 py-2 text-sm">Item</th>
-                                            <th class="px-4 py-2 text-sm">Qty</th>
+                                            <th class="px-2 py-2 text-sm">Qty</th>
                                             <th class="px-4 py-2 text-sm">Price</th>
                                             <th class="px-4 py-2 text-sm">Subtotal</th>
                                             <th class="px-4 py-2 text-sm"></th>
@@ -59,10 +59,10 @@
                                         <tr>
                                             <td class="px-4 py-2">
                                                 <select name="saleItems[{{ $index }}][id]"
-                                                    class="item-select border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                                    class="item-select border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 md:max-w-[240px] truncate">
                                                     <option value="">-- Select Item --</option>
                                                     @foreach ($items as $item)
-                                                    <option value="{{ $item->id }}" data-price="{{ $item->price }}"
+                                                    <option value="{{ $item->id }}" data-price="{{ $item->price }}" title="{{ $item->name }} ({{ $item->quantity }})"
                                                         {{ (isset($oldItem['id']) && $oldItem['id'] == $item->id) ? 'selected' : '' }}>
                                                         {{ $item->name }} ({{ $item->quantity }})
                                                     </option>
@@ -173,10 +173,10 @@
         newRow.innerHTML = `
             <td class="px-4 py-2">
                 <select name="saleItems[${rowIndex}][id]" 
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 item-select">
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 item-select md:max-w-[240px] truncate">
                     <option value="">-- Select Item --</option>
                     @foreach ($items as $item)
-                    <option value="{{ $item->id }}" data-price="{{ $item->price }}">
+                    <option value="{{ $item->id }}" data-price="{{ $item->price }}" title="{{ $item->name }} ({{ $item->quantity }})">
                         {{ $item->name }} ({{ $item->quantity }})
                     </option>
                     @endforeach

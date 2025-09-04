@@ -7,6 +7,7 @@ enum PaymentStatus: string
     case SUCCESS = 'SUCCESS';
     case PENDING = 'PENDING';
     case FAILED = 'FAILED';
+    case REJECTED = 'REJECTED';
 
     public function label(): string
     {
@@ -14,6 +15,7 @@ enum PaymentStatus: string
             self::SUCCESS   => 'Success',
             self::PENDING   => 'Pending',
             self::FAILED    => 'Failed',
+            self::REJECTED  => 'Rejected',
         };
     }   
 }

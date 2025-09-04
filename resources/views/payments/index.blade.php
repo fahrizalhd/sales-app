@@ -28,8 +28,8 @@
                             <th scope="col" class="px-6 py-3"><x-sort-link column="amount" label="Total"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="method" label="Channel"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="status" label="Status"></x-sort-link></th>
-                            <th scope="col" class="px-6 py-3"><x-sort-link column="created_by" label="Submitted by"></x-sort-link></th>
-                            <th scope="col" class="px-6 py-3"><x-sort-link column="created_at" label="Submitted on"></x-sort-link></th>
+                            <th scope="col" class="px-6 py-3"><x-sort-link column="created_by" label="Submitter"></x-sort-link></th>
+                            <th scope="col" class="px-6 py-3"><x-sort-link column="updated_at" label="Approved at"></x-sort-link></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -40,19 +40,25 @@
                             <td class="px-6 py-4">{{ format_rupiah($payment->amount) }}</td>
                             <td class="px-6 py-4">{{ \App\Enums\PaymentMethod::tryFrom($payment->method->value)?->label() ?? 'Unknown' }}</th>
                                 @php
-                                    $status = \App\Enums\PaymentStatus::tryFrom($payment->status->value);
-                                    $badgeClasses = match($status) {
-                                        \App\Enums\PaymentStatus::SUCCESS => 'bg-green-100 text-green-800',
-                                        \App\Enums\PaymentStatus::PENDING => 'bg-yellow-100 text-yellow-800',
-                                        \App\Enums\PaymentStatus::FAILED => 'bg-red-100 text-red-800',
-                                    default => 'bg-gray-100 text-gray-800',
+                                $status = \App\Enums\PaymentStatus::tryFrom($payment->status->value);
+                                $badgeClasses = match($status) {
+                                \App\Enums\PaymentStatus::SUCCESS => 'bg-green-100 text-green-800',
+                                \App\Enums\PaymentStatus::PENDING => 'bg-yellow-100 text-yellow-800',
+                                \App\Enums\PaymentStatus::FAILED => 'bg-red-100 text-red-800',
+                                default => 'bg-gray-100 text-gray-800',
                                 };
                                 @endphp
                             <td class="px-6 py-4">
                                 <span class="{{ $badgeClasses }} text-xs font-medium px-2.5 py-1 rounded-full">{{ $status?->label() ?? 'Unknown' }}</span>
                             </td>
-                            <td class="px-6 py-4">{{ $payment->createdBy->name }}</td>
-                            <td class="px-6 py-4">{{ format_date_with_time($payment->created_at) }}</td>
+                            <td class="px-6 py-4">{{ $payment->createdBy->name }} by {{ format_date_with_time($payment->created_at) }}</td>
+                            <td class="px-6 py-4">
+                                @if ($payment->status == \App\Enums\PaymentStatus::PENDING)
+                                    <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-1 rounded-full">Not Approved Yet</span>
+                                @elseif ($payment->status == \App\Enums\PaymentStatus::SUCCESS)
+                                    {{ format_date_with_time($payment->updated_at) }}
+                                @endif
+                            </td>
                         </tr>
                         @empty
                         <tr>

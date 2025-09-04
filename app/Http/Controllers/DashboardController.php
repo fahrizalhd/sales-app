@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -14,92 +15,98 @@ class DashboardController extends Controller
     /**
      * Display the dashboard with sales statistics and recent sales data.
      *
-     * @return \Illuminate\View\View Returns the dashboard view with all sales statistics.
      */
-    public function index()
+    public function index(Request $request)
     {
         $loggedUser = Auth::user();
         if ($loggedUser->role === UserRole::USER) {
             return redirect()->back()->with('error', 'You do not have permission to access this page.');
         }
-        
-        $now = Carbon::now();
 
-        $thisWeekRevenue = Sale::whereBetween('created_at', [
-            $now->copy()->startOfWeek(Carbon::MONDAY),
-            $now->copy()->endOfWeek(Carbon::SUNDAY),
-        ])
-            ->sum('total_amount');
+        $selectedMonth = $request->input('month', now()->month);
+        $selectedYear  = $request->input('year', now()->year);
 
-        $thisMonthRevenue = Sale::whereYear('created_at', $now->year)
-            ->whereMonth('created_at', $now->month)
-            ->sum('total_amount');
-
+        $now = Carbon::create($selectedYear, $selectedMonth, 1);
         $lastMonth = $now->copy()->subMonth();
-        $lastMonthRevenue = Sale::whereYear('created_at', $lastMonth->year)
-            ->whereMonth('created_at', $lastMonth->month)
+
+        $thisWeekStart  = $now->copy()->startOfWeek(Carbon::MONDAY);
+        $thisWeekEnd    = $now->copy()->endOfWeek(Carbon::SUNDAY);
+        $thisMonthStart = $now->copy()->startOfMonth();
+        $thisMonthEnd   = $now->copy()->endOfMonth();
+        $lastMonthStart = $lastMonth->copy()->startOfMonth();
+        $lastMonthEnd   = $lastMonth->copy()->endOfMonth();
+
+        $thisWeekRange  = $thisWeekStart->format('d F Y') . ' - ' . $thisWeekEnd->format('d F Y');
+        $thisMonthName  = $now->format('F Y');
+        $lastMonthName  = $lastMonth->format('F Y');
+
+        $thisWeekRevenue = Sale::whereBetween('created_at', [$thisWeekStart, $thisWeekEnd])->sum('total_amount');
+        $thisWeekUnearnedRevenue = Sale::whereBetween('created_at', [$thisWeekStart, $thisWeekEnd])
+            ->whereIn('status', Sale::unpaidStatuses())
             ->sum('total_amount');
 
-        $thisWeekUnearnedRevenue = Sale::whereBetween('created_at', [
-            $now->copy()->startOfWeek(Carbon::MONDAY),
-            $now->copy()->endOfWeek(Carbon::SUNDAY),
-        ])
-            ->where('is_paid', false)
+        $thisMonthRevenue = Sale::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])->sum('total_amount');
+        $thisMonthUnearnedRevenue = Sale::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+            ->whereIn('status', Sale::unpaidStatuses())
             ->sum('total_amount');
 
-        $thisMonthUnearnedRevenue = Sale::whereYear('created_at', $now->year)
-            ->whereMonth('created_at', $now->month)
-            ->where('is_paid', false)
+        $lastMonthRevenue = Sale::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])->sum('total_amount');
+        $lastMonthUnearnedRevenue = Sale::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])
+            ->whereIn('status', Sale::unpaidStatuses())
             ->sum('total_amount');
 
-        $lastMonth = $now->copy()->subMonth();
-        $lastMonthUnearnedRevenue = Sale::whereYear('created_at', $lastMonth->year)
-            ->whereMonth('created_at', $lastMonth->month)
-            ->where('is_paid', false)
+        $paidRevenue = Sale::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+            ->whereIn('status', Sale::paidStatuses())
             ->sum('total_amount');
+
+        $unpaidRevenue = Sale::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+            ->whereIn('status', Sale::unpaidStatuses())
+            ->sum('total_amount');
+
+        $paidCount = Sale::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+            ->whereIn('status', Sale::paidStatuses())
+            ->count();
+
+        $unpaidCount = Sale::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+            ->whereIn('status', Sale::unpaidStatuses())
+            ->count();
+
+        $driver = DB::getDriverName();
+        switch ($driver) {
+            case 'mysql':
+                $dayExpr = "DAY(created_at)";
+                break;
+            case 'pgsql':
+                $dayExpr = "CAST(TO_CHAR(created_at, 'DD') AS INTEGER)";
+                break;
+            default:
+                $dayExpr = "CAST(strftime('%d', created_at) AS INTEGER)";
+                break;
+        }
+
+        $thisMonthSales = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
+            ->whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+            ->groupBy('day')
+            ->pluck('total', 'day');
+
+        $lastMonthSales = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
+            ->whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])
+            ->groupBy('day')
+            ->pluck('total', 'day');
 
         $topItems = SaleItem::select('item_id', DB::raw('SUM(quantity) as total_qty'))
+            ->whereHas('sale', function ($query) use ($selectedMonth, $selectedYear) {
+                $query->whereMonth('created_at', $selectedMonth)
+                    ->whereYear('created_at', $selectedYear);
+            })
             ->groupBy('item_id')
             ->orderByDesc('total_qty')
             ->with('item:id,name')
             ->take(5)
             ->get();
 
-        $paidRevenue = Sale::whereMonth('created_at', $now->month)
-            ->whereYear('created_at', $now->year)
-            ->where('is_paid', true)
-            ->sum('total_amount');
-
-        $unpaidRevenue = Sale::whereMonth('created_at', $now->month)
-            ->whereYear('created_at', $now->year)
-            ->where('is_paid', false)
-            ->sum('total_amount');
-
-        $paidCount = Sale::whereMonth('created_at', $now->month)
-            ->whereYear('created_at', $now->year)
-            ->where('is_paid', true)
-            ->count();
-
-        $unpaidCount = Sale::whereMonth('created_at', $now->month)
-            ->whereYear('created_at', $now->year)
-            ->where('is_paid', false)
-            ->count();
-
-        $thisMonthSales = Sale::selectRaw("strftime('%d', created_at) as day, COUNT(*) as total")
-            ->whereMonth('created_at', $now->month)
-            ->whereYear('created_at', $now->year)
-            ->where('is_paid', true)
-            ->groupBy('day')
-            ->pluck('total', 'day');
-
-        $lastMonthSales = Sale::selectRaw("strftime('%d', created_at) as day, COUNT(*) as total")
-            ->whereMonth('created_at', $now->subMonth()->month)
-            ->whereYear('created_at', $now->subMonth()->year)
-            ->where('is_paid', true)
-            ->groupBy('day')
-            ->pluck('total', 'day');
-
-        $latestSales = Sale::latest('created_at')
+        $latestSales = Sale::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+            ->latest('created_at')
             ->take(10)
             ->get();
 
@@ -118,6 +125,11 @@ class DashboardController extends Controller
             'thisMonthSales'            => $thisMonthSales,
             'lastMonthSales'            => $lastMonthSales,
             'latestSales'               => $latestSales,
+            'thisWeekRange'             => $thisWeekRange,
+            'thisMonthName'             => $thisMonthName,
+            'lastMonthName'             => $lastMonthName,
+            'selectedMonth'             => $selectedMonth,
+            'selectedYear'              => $selectedYear,
         ]);
     }
 }

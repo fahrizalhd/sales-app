@@ -42,7 +42,9 @@
                             <td class="px-6 py-4">
                                 <form action="{{ route('categories.destroy', $category) }}" method="POST" class="inline ml-2" onsubmit="return confirm('Delete category?')">
                                     @csrf @method('DELETE')
-                                    <button class="text-red-500">Delete</button>
+                                    <button class="inline-flex items-center justify-center p-2 text-red-500 rounded-full hover:bg-red-100 hover:text-red-600 transition-colors duration-200">
+                                        Delete
+                                    </button>
                                 </form>
                             </td>
                         </tr>

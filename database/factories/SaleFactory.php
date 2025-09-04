@@ -43,7 +43,7 @@ class SaleFactory extends Factory
 
     public function definition(): array
     {
-        $dateTime = $this->faker->dateTimeBetween('-2 months', 'now');
+        $dateTime = $this->faker->dateTimeBetween('-3 months', 'now');
         $dateForInvoice = $dateTime->format('Ymd');
 
         if (!isset(self::$counters[$dateForInvoice])) {

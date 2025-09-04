@@ -60,15 +60,37 @@
                         <p><span class="font-medium">Created at:</span> {{ format_date_with_time($payment->created_at) }}</p>
                         <p><span class="font-medium">Submitted by:</span> {{ $payment->createdBy->name }}</p>
                     </div>
-                    <div class="flex justify-end gap-2 mt-4">
-                        <a href="{{ route('payments.index') }}"
-                            class="py-2.5 px-5 text-sm font-medium text-gray-900 bg-none rounded-lg hover:bg-gray-100 hover:text-gray-700">
-                            Back
-                        </a>
-                        <a href="{{ route('payments.print', $payment) }}" target="_blank"
-                            class="inline-flex items-center gap-2 text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5">
-                            Print Receipt
-                        </a>
+                    <div class="flex justify-between gap-2 mt-4">
+                        <div class="flex justify-start gap-2">
+                            @if ($payment->status === \App\Enums\PaymentStatus::PENDING)
+                            <form action="{{ route('payments.approve', $payment->id) }}" method="POST" onsubmit="return confirm('Approve this payment?')">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit"
+                                    class="py-2.5 px-5 text-sm font-medium text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 rounded-lg">
+                                    Approve
+                                </button>
+                            </form>
+                            <form action="{{ route('payments.reject', $payment->id) }}" method="POST" onsubmit="return confirm('Reject this payment?')">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit"
+                                    class="py-2.5 px-5 text-sm font-medium text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 rounded-lg">
+                                    Reject
+                                </button>
+                            </form>
+                            @endif
+                        </div>
+                        <div class="flex justify-end gap-2">
+                            <a href="{{ route('payments.index') }}"
+                                class="py-2.5 px-5 text-sm font-medium text-gray-900 bg-none rounded-lg hover:bg-gray-100 hover:text-gray-700">
+                                Back
+                            </a>
+                            <a href="{{ route('payments.print', $payment) }}" target="_blank"
+                                class="inline-flex items-center gap-2 text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5">
+                                Print Receipt
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
