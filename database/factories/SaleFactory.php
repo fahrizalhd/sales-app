@@ -43,8 +43,8 @@ class SaleFactory extends Factory
 
     public function definition(): array
     {
-        $dateTime = $this->faker->dateTimeBetween('-3 months', 'now');
-        $dateForInvoice = $dateTime->format('Ymd');
+        $transactionDate = $this->faker->dateTimeBetween('-1 months', 'now');
+        $dateForInvoice = $transactionDate->format('Ymd');
 
         if (!isset(self::$counters[$dateForInvoice])) {
             self::$counters[$dateForInvoice] = 1;
@@ -59,8 +59,9 @@ class SaleFactory extends Factory
             'customer_name'     => $this->getRandomCustomer(),
             'total_amount'      => 0,
             'status'            => SaleStatus::UNPAID->value,
-            'created_at'        => $dateTime,
-            'updated_at'        => $dateTime,
+            'transaction_date'  => $transactionDate,
+            'created_at'        => $transactionDate,
+            'updated_at'        => $transactionDate,
         ];
     }
 

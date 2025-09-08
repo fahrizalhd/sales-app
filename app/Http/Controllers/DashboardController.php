@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
+use App\Models\Payment;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use Carbon\Carbon;
@@ -40,64 +41,70 @@ class DashboardController extends Controller
         $thisMonthName  = $now->format('F Y');
         $lastMonthName  = $lastMonth->format('F Y');
 
-        $thisWeekRevenue = Sale::whereBetween('created_at', [$thisWeekStart, $thisWeekEnd])->sum('total_amount');
-        $thisWeekUnearnedRevenue = Sale::whereBetween('created_at', [$thisWeekStart, $thisWeekEnd])
+        $thisWeekRevenue = Sale::whereBetween('transaction_date', [$thisWeekStart, $thisWeekEnd])->sum('total_amount');
+        $thisWeekUnearnedRevenue = Sale::whereBetween('transaction_date', [$thisWeekStart, $thisWeekEnd])
             ->whereIn('status', Sale::unpaidStatuses())
             ->sum('total_amount');
 
-        $thisMonthRevenue = Sale::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])->sum('total_amount');
-        $thisMonthUnearnedRevenue = Sale::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+        $thisMonthRevenue = Sale::whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])->sum('total_amount');
+        $thisMonthUnearnedRevenue = Sale::whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])
             ->whereIn('status', Sale::unpaidStatuses())
             ->sum('total_amount');
 
-        $lastMonthRevenue = Sale::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])->sum('total_amount');
-        $lastMonthUnearnedRevenue = Sale::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])
+        $lastMonthRevenue = Sale::whereBetween('transaction_date', [$lastMonthStart, $lastMonthEnd])->sum('total_amount');
+        $lastMonthUnearnedRevenue = Sale::whereBetween('transaction_date', [$lastMonthStart, $lastMonthEnd])
             ->whereIn('status', Sale::unpaidStatuses())
             ->sum('total_amount');
 
-        $paidRevenue = Sale::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+        $paidRevenue = Sale::whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])
             ->whereIn('status', Sale::paidStatuses())
             ->sum('total_amount');
 
-        $unpaidRevenue = Sale::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+        $unpaidRevenue = Sale::whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])
             ->whereIn('status', Sale::unpaidStatuses())
             ->sum('total_amount');
 
-        $paidCount = Sale::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+        $paidCount = Sale::whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])
             ->whereIn('status', Sale::paidStatuses())
             ->count();
 
-        $unpaidCount = Sale::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+        $unpaidCount = Sale::whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])
             ->whereIn('status', Sale::unpaidStatuses())
             ->count();
+
+        $paymentChannels = Payment::whereMonth('transaction_date', $selectedMonth)
+            ->whereYear('transaction_date', $selectedYear)
+            ->select('method', DB::raw('COUNT(*) as total'))
+            ->groupBy('method')
+            ->pluck('total', 'method');
 
         $driver = DB::getDriverName();
         switch ($driver) {
             case 'mysql':
-                $dayExpr = "DAY(created_at)";
+                $dayExpr = "DAY(transaction_date)";
                 break;
             case 'pgsql':
-                $dayExpr = "CAST(TO_CHAR(created_at, 'DD') AS INTEGER)";
+                $dayExpr = "CAST(TO_CHAR(transaction_date, 'DD') AS INTEGER)";
                 break;
             default:
-                $dayExpr = "CAST(strftime('%d', created_at) AS INTEGER)";
+                $dayExpr = "CAST(strftime('%d', transaction_date) AS INTEGER)";
                 break;
         }
 
         $thisMonthSales = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
-            ->whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+            ->whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])
             ->groupBy('day')
             ->pluck('total', 'day');
 
         $lastMonthSales = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
-            ->whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])
+            ->whereBetween('transaction_date', [$lastMonthStart, $lastMonthEnd])
             ->groupBy('day')
             ->pluck('total', 'day');
 
         $topItems = SaleItem::select('item_id', DB::raw('SUM(quantity) as total_qty'))
             ->whereHas('sale', function ($query) use ($selectedMonth, $selectedYear) {
-                $query->whereMonth('created_at', $selectedMonth)
-                    ->whereYear('created_at', $selectedYear);
+                $query->whereMonth('transaction_date', $selectedMonth)
+                    ->whereYear('transaction_date', $selectedYear);
             })
             ->groupBy('item_id')
             ->orderByDesc('total_qty')
@@ -105,8 +112,8 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        $latestSales = Sale::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
-            ->latest('created_at')
+        $latestSales = Sale::whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])
+            ->latest('transaction_date')
             ->take(10)
             ->get();
 
@@ -122,6 +129,7 @@ class DashboardController extends Controller
             'unpaidRevenue'             => $unpaidRevenue,
             'paidCount'                 => $paidCount,
             'unpaidCount'               => $unpaidCount,
+            'paymentChannels'           => $paymentChannels,
             'thisMonthSales'            => $thisMonthSales,
             'lastMonthSales'            => $lastMonthSales,
             'latestSales'               => $latestSales,

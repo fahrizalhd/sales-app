@@ -45,10 +45,10 @@ class PaymentController extends Controller
                 'amount',
                 'method',
                 'status',
-                'created_at',
+                'approved_at',
                 'created_by',
             ])
-            ->latest()
+            ->latest('approved_at')
             ->paginate(10)
             ->withQueryString();
 
@@ -94,6 +94,7 @@ class PaymentController extends Controller
                 'amount'        => $request->amount,
                 'method'        => $request->method,
                 'status'        => $paymentStatus,
+                'approved_at'   => $request->method === PaymentMethod::CASH->value ? now() : null,
                 'created_by'    => $loggedUser->id,
                 'updated_by'    => $loggedUser->id,
             ]);
@@ -140,13 +141,13 @@ class PaymentController extends Controller
             // Update sale status depending on payment method
             if ($request->method === PaymentMethod::CASH->value) {
                 $sale->update([
-                    'status'     => SaleStatus::PAID->value,
-                    'updated_by' => $loggedUser->id,
+                    'status'        => SaleStatus::PAID->value,
+                    'updated_by'    => $loggedUser->id,
                 ]);
             } elseif (in_array($request->method, [PaymentMethod::QRIS->value, PaymentMethod::DEBIT->value])) {
                 $sale->update([
-                    'status'     => SaleStatus::NEED_REVIEW->value,
-                    'updated_by' => $loggedUser->id,
+                    'status'        => SaleStatus::NEED_REVIEW->value,
+                    'updated_by'    => $loggedUser->id,
                 ]);
             }
         });
@@ -184,7 +185,10 @@ class PaymentController extends Controller
     public function approve($id)
     {
         $payment = Payment::findOrFail($id);
-        $payment->update(['status' => PaymentStatus::SUCCESS->value]);
+        $payment->update([
+            'status'        => PaymentStatus::SUCCESS->value,
+            'approved_at'   => now(),
+        ]);
 
         if ($payment->sale->status !== SaleStatus::PAID) {
             $payment->sale->update(['status' => SaleStatus::PAID->value]);
@@ -201,7 +205,10 @@ class PaymentController extends Controller
     public function reject($id)
     {
         $payment = Payment::findOrFail($id);
-        $payment->update(['status' => PaymentStatus::REJECTED->value]);
+        $payment->update([
+            'status'        => PaymentStatus::REJECTED->value,
+            'rejeted_at'    => now(),
+        ]);
 
         return redirect()->route('payments.show', $id)
             ->with('error', 'Payment rejected.');

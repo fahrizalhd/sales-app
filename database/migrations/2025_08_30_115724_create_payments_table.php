@@ -18,6 +18,8 @@ return new class extends Migration
             $table->decimal('amount', 12, 2);
             $table->enum('status', ['SUCCESS', 'PENDING', 'FAILED'])->default('PENDING');
             $table->string('payment_reference')->nullable();
+            $table->timestamp('approved_at')->nullable();
+            $table->timestamp('rejected_at')->nullable();
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->foreignId('updated_by')->constrained('users')->onDelete('cascade');
             $table->timestamps();

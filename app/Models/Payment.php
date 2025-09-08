@@ -21,7 +21,9 @@ class Payment extends Model
         'method', 
         'amount', 
         'status', 
-        'payment_reference'
+        'payment_reference',
+        'approved_at',
+        'rejected_at',
     ];
 
      /**
@@ -29,8 +31,10 @@ class Payment extends Model
      */
     protected $casts = 
     [
-        'method' => PaymentMethod::class,
-        'status' => PaymentStatus::class,
+        'method'        => PaymentMethod::class,
+        'status'        => PaymentStatus::class,
+        'approved_at'   => 'datetime',
+        'rejected_at'   => 'datetime',
     ];
 
      /**

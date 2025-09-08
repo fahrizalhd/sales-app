@@ -43,12 +43,12 @@
                 </div>
             </div>
             <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-                <table class="w-full text-sm text-center rtl:text-right text-gray-500">
+                <table class="w-full text-sm text-center rtl:text-right text-gray-500 overflow-hidden">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
                             <th scope="col" class="px-6 py-3 text-left">Invoice Number</th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="customer_name" label="Customer"></x-sort-link></th>
-                            <th scope="col" class="px-6 py-3"><x-sort-link column="created_at" label="Date"></x-sort-link></th>
+                            <th scope="col" class="px-6 py-3"><x-sort-link column="transaction_date" label="Date"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="total_amount" label="Total"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="status" label="Status"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="created_by" label="Handler"></x-sort-link></th>
@@ -60,7 +60,7 @@
                         <tr data-href="{{ route('sales.edit', $sale) }}" class="bg-white border-b border-gray-200 hover:bg-gray-50 cursor-pointer">
                             <td class="px-6 py-4 text-left font-semibold">{{ $sale->invoice_number }}</th>
                             <td class="px-6 py-4">{{ $sale->customer_name }}</th>
-                            <td class="px-6 py-4 font-semibold">{{ format_date_with_time($sale->created_at) }}</th>
+                            <td class="px-6 py-4 font-semibold">{{ format_date_with_time($sale->transaction_date) }}</th>
                             <td class="px-6 py-4">{{ format_rupiah($sale->total_amount) }}</td>
                             @php
                             $colors = [

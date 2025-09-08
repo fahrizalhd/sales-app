@@ -35,13 +35,15 @@ class Sale extends Model
         'customer_name',
         'total_amount',
         'status',
+        'transaction_date'
     ];
 
     /**
      * The attributes that should be cast to native types.
      */
     protected $casts = [
-        'status' => SaleStatus::class,
+        'status'            => SaleStatus::class,
+        'transaction_date'  => 'datetime',
     ];
 
     /**

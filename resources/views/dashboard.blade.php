@@ -25,20 +25,26 @@
                 <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5">
                     Filter
                 </button>
+                @if($selectedMonth != now()->month || $selectedYear != now()->year)
+                <a href="{{ route('dashboard') }}" 
+                    class="text-gray-700 hover:bg-gray-300 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">
+                    Reset
+                </a>
+                @endif
             </form>
 
-            <div class="grid grid-cols-2 gap-2">
-                <div class="col-span-2 bg-white overflow-hidden shadow-sm sm:rounded-lg p-4">
+            <div class="grid grid-cols-3 gap-2">
+                <div class="col-span-3 bg-white overflow-hidden shadow-sm sm:rounded-lg p-4">
                     <h4 class="text-md text-gray-700 uppercase font-semibold mb-4">Revenue</h4>
                     <div class="grid grid-cols-3 gap-4">
-                        <div class="border-r-2 pr-2">
+                        <div class="">
                             <span class="block text-gray-500 text-sm">This Week</span>
                             <span class="text-md font-semibold text-gray-800 block"> {{ format_rupiah($thisWeekRevenue) }} </span>
                             <span class="text-sm font-medium text-gray-600"> Unearned:
                                 <span class="text-red-600"> {{ format_rupiah($thisWeekUnearnedRevenue) }} </span>
                             </span>
                         </div>
-                        <div class="border-r-2 pr-2">
+                        <div class="">
                             <span class="block text-gray-500 text-sm">This Month</span>
                             @php
                                 $isUp = $thisMonthRevenue > $lastMonthRevenue;
@@ -68,7 +74,7 @@
                                 <span class="text-red-600"> {{ format_rupiah($thisMonthUnearnedRevenue) }} </span>
                             </span>
                         </div>
-                        <div class="pr-2">
+                        <div class="">
                             <h4 class="block text-gray-500 text-sm">Last Month</h4>
                             <span class="text-md font-semibold text-gray-800 block">
                                 {{ format_rupiah($lastMonthRevenue) }}
@@ -81,17 +87,21 @@
                 </div>
                 <div class="col-span-1 bg-white overflow-hidden shadow-sm sm:rounded-lg p-4">
                     <h4 class="text-md text-gray-700 uppercase font-semibold mb-4">Top Items</h4>
-                    <canvas id="topItemsChart" height="100"></canvas>
+                    <canvas id="topItemsChart" height=""></canvas>
                 </div>
                 <div class="col-span-1 bg-white overflow-hidden shadow-sm sm:rounded-lg p-4">
-                    <h4 class="text-md text-gray-700 uppercase font-semibold mb-4">Paid vs Unpaid Revenue</h4>
-                    <canvas class="mx-auto" id="revenueDonutChart" height="200"></canvas>
+                    <h4 class="text-md text-gray-700 uppercase font-semibold mb-4">Paid vs Unpaid Sales</h4>
+                    <canvas class="mx-auto" id="paidUnpaidChart" height=""></canvas>
                 </div>
-                <div class="col-span-2 bg-white overflow-hidden shadow-sm sm:rounded-lg p-4">
+                <div class="col-span-1 bg-white overflow-hidden shadow-sm sm:rounded-lg p-4">
+                    <h4 class="text-md text-gray-700 uppercase font-semibold mb-4">Payment Channel</h4>
+                    <canvas class="mx-auto" id="paymentChannelChart" height=""></canvas>
+                </div>
+                <div class="col-span-3 bg-white overflow-hidden shadow-sm sm:rounded-lg p-4">
                     <h4 class="text-md text-gray-700 uppercase font-semibold mb-4">Sales Comparison</h4>
                     <canvas id="salesChart" height="100"></canvas>
                 </div>
-                <div class="col-span-2 bg-white overflow-hidden shadow-sm sm:rounded-lg p-4">
+                <div class="col-span-3 bg-white overflow-hidden shadow-sm sm:rounded-lg p-4">
                     <h4 class="text-md text-gray-700 uppercase font-semibold mb-4">Last 10 Sales</h4>
                     <div class="relative overflow-x-auto sm:rounded-lg">
                         <table class="w-full text-sm text-center rtl:text-right text-gray-500">
@@ -146,6 +156,8 @@
             { x: {{ $day }}, y: {{ $total }} },
         @endforeach
     ];
+    const thisMonthLabel = "{{ $thisMonthName }}";
+    const lastMonthLabel = "{{ $lastMonthName }}";
     const salesChart = new Chart(ctxSalesChart, {
         type: 'line',
         data: {
@@ -186,7 +198,23 @@
                 tooltip: {
                     mode: 'nearest',
                     intersect: true,
-                }
+                    callbacks: {
+                        title: function(context) {
+                            const day = context[0].parsed.x;
+                            const datasetLabel = context[0].dataset.label;
+                            let monthLabel = thisMonthLabel;
+                            if (datasetLabel === 'Last Month') {
+                                monthLabel = lastMonthLabel;
+                            }
+
+                            return `${day} ${monthLabel}`;
+                        },
+                        label: function(context) {
+                            const value = context.parsed.y;
+                            return `${context.dataset.label}: ${value} order(s)`;
+                        },
+                    },
+                },
             },
             stacked: false,
             scales: {
@@ -284,8 +312,8 @@
         }
     });
 
-    const ctxRevenue = document.getElementById('revenueDonutChart').getContext('2d');
-    const revenueDonutChart = new Chart(ctxRevenue, {
+    const ctxPaidUnpaid = document.getElementById('paidUnpaidChart').getContext('2d');
+    const paidUnpaidChart = new Chart(ctxPaidUnpaid, {
         type: 'doughnut',
         data: {
             labels: [
@@ -323,4 +351,53 @@
             }
         }
     });
+
+    const ctxPayment = document.getElementById('paymentChannelChart').getContext('2d');
+    const paymentLabels = [
+        @foreach($paymentChannels as $method => $total)
+            "{{ $method }}",
+        @endforeach
+    ];
+    const paymentData = [
+        @foreach($paymentChannels as $method => $total)
+            {{ $total }},
+        @endforeach
+    ];
+    const paymentChannelChart =new Chart(ctxPayment, {
+        type: 'pie',
+        data: {
+            labels: paymentLabels,
+            datasets: [{
+                data: paymentData,
+                backgroundColor: [
+                    '#36A2EB',
+                    '#FFCE56',
+                    '#FF6384',
+                    '#4BC0C0',
+                    '#9966FF',
+                ],
+                borderWidth: 1,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            const total = context.chart._metasets[0].total;
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
 </script>

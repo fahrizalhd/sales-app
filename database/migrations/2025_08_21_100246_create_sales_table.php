@@ -15,14 +15,13 @@ return new class extends Migration
             $table->id();
             $table->string('invoice_number')->unique();
             $table->string('customer_name');
+            $table->timestamp('transaction_date');
             $table->decimal('total_amount', 12, 2)->default(0);
             $table->string('status')->default('UNPAID');
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->foreignId('updated_by')->constrained('users')->onDelete('cascade');
             $table->timestamps();
-            $table->softDeletes();
-            
-            $table->index(['created_at']);
+            $table->softDeletes();            
         });
     }
 

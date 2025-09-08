@@ -29,7 +29,7 @@
                             <th scope="col" class="px-6 py-3"><x-sort-link column="method" label="Channel"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="status" label="Status"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="created_by" label="Submitter"></x-sort-link></th>
-                            <th scope="col" class="px-6 py-3"><x-sort-link column="updated_at" label="Approved at"></x-sort-link></th>
+                            <th scope="col" class="px-6 py-3"><x-sort-link column="approved_at" label="Approved at"></x-sort-link></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -56,7 +56,7 @@
                                 @if ($payment->status == \App\Enums\PaymentStatus::PENDING)
                                     <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-1 rounded-full">Not Approved Yet</span>
                                 @elseif ($payment->status == \App\Enums\PaymentStatus::SUCCESS)
-                                    {{ format_date_with_time($payment->updated_at) }}
+                                    {{ format_date_with_time($payment->approved_at) }}
                                 @endif
                             </td>
                         </tr>

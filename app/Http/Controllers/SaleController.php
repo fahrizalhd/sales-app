@@ -27,10 +27,10 @@ class SaleController extends Controller
                         ->orWhere('customer_name', 'like', "%{$value}%");
                 }),
                 AllowedFilter::callback('start_date', function ($query, $value) {
-                    $query->whereDate('created_at', '>=', $value);
+                    $query->whereDate('transaction_date', '>=', $value);
                 }),
                 AllowedFilter::callback('end_date', function ($query, $value) {
-                    $query->whereDate('created_at', '<=', $value);
+                    $query->whereDate('transaction_date', '<=', $value);
                 }),
                 AllowedFilter::exact('status'),
             ])
@@ -38,9 +38,9 @@ class SaleController extends Controller
                 'customer_name',
                 'total_amount',
                 'status',
-                'created_at',
+                'transaction_date',
             ])
-            ->latest()
+            ->latest('transaction_date')
             ->paginate(10)
             ->withQueryString();
 
@@ -78,47 +78,44 @@ class SaleController extends Controller
 
         $loggedUser = Auth::user();
 
-        try {
-            DB::transaction(function () use ($request, $loggedUser) {
-                $sale = Sale::create([
-                    'invoice_number' => $request->invoice_number,
-                    'customer_name'  => $request->customer_name,
-                    'total_amount'   => 0,
-                    'status'         => SaleStatus::UNPAID,
-                    'created_by'     => $loggedUser->id,
-                    'updated_by'     => $loggedUser->id,
-                ]);
+        DB::transaction(function () use ($request, $loggedUser) {
+            $sale = Sale::create([
+                'invoice_number'    => $request->invoice_number,
+                'customer_name'     => $request->customer_name,
+                'total_amount'      => 0,
+                'status'            => SaleStatus::UNPAID,
+                'transaction_date'  => now(),
+                'created_by'        => $loggedUser->id,
+                'updated_by'        => $loggedUser->id,
+            ]);
 
-                $total = 0;
+            $total = 0;
 
-                foreach ($request->saleItems as $data) {
-                    $item = Item::findOrFail($data['id']);
+            foreach ($request->saleItems as $data) {
+                $item = Item::findOrFail($data['id']);
 
-                    if ($data['qty'] > $item->quantity) {
-                        throw new \Exception("Insufficient stock for {$item->name} (available: {$item->quantity}).");
-                    }
-
-                    $subtotal = $item->price * $data['qty'];
-
-                    $sale->saleItems()->create([
-                        'item_id'       => $item->id,
-                        'quantity'      => $data['qty'],
-                        'price'         => $item->price,
-                        'subtotal'      => $subtotal,
-                        'created_by'    => $loggedUser->id,
-                        'updated_by'    => $loggedUser->id,
-                    ]);
-
-                    $total += $subtotal;
+                if ($data['qty'] > $item->quantity) {
+                    return redirect()->back()->with('warning', "Insufficient stock for {$item->name} (available: {$item->quantity}).");
                 }
 
-                $sale->update(['total_amount' => $total]);
-            });
+                $subtotal = $item->price * $data['qty'];
 
-            return redirect()->route('sales.index')->with('success', 'Sale created successfully (waiting for payment).');
-        } catch (\Exception $e) {
-            return redirect()->back()->withInput()->with('error', $e->getMessage());
-        }
+                $sale->saleItems()->create([
+                    'item_id'       => $item->id,
+                    'quantity'      => $data['qty'],
+                    'price'         => $item->price,
+                    'subtotal'      => $subtotal,
+                    'created_by'    => $loggedUser->id,
+                    'updated_by'    => $loggedUser->id,
+                ]);
+
+                $total += $subtotal;
+            }
+
+            $sale->update(['total_amount' => $total]);
+        });
+
+        return redirect()->route('sales.index')->with('success', 'Sale created successfully (waiting for payment).');
     }
 
     /**
@@ -158,49 +155,46 @@ class SaleController extends Controller
 
         $loggedUser = Auth::user();
 
-        try {
-            $sale = DB::transaction(function () use ($request, $id, $loggedUser) {
-                $sale = Sale::with('saleItems')->findOrFail($id);
+        $sale = DB::transaction(function () use ($request, $id, $loggedUser) {
+            $sale = Sale::with('saleItems')->findOrFail($id);
 
-                $sale->update([
-                    'customer_name'  => $request->customer_name,
-                    'updated_by'     => $loggedUser->id,
-                ]);
+            $sale->update([
+                'customer_name'  => $request->customer_name,
+                'updated_by'     => $loggedUser->id,
+            ]);
 
-                $sale->saleItems()->delete();
+            $sale->saleItems()->delete();
 
-                $total = 0;
+            $total = 0;
 
-                foreach ($request->saleItems as $data) {
-                    $item = Item::findOrFail($data['id']);
+            foreach ($request->saleItems as $data) {
+                $item = Item::findOrFail($data['id']);
 
-                    if ($data['qty'] > $item->quantity) {
-                        throw new \Exception("Insufficient stock for {$item->name} (available: {$item->quantity}).");
-                    }
+                if ($data['qty'] > $item->quantity) {
+                    return redirect()->back()->with('warning', "Insufficient stock for {$item->name} (available: {$item->quantity}).");
 
-                    $subtotal = $item->price * $data['qty'];
-
-                    $sale->saleItems()->create([
-                        'item_id'    => $item->id,
-                        'quantity'   => $data['qty'],
-                        'price'      => $item->price,
-                        'subtotal'   => $subtotal,
-                        'created_by' => $loggedUser->id,
-                        'updated_by' => $loggedUser->id,
-                    ]);
-
-                    $total += $subtotal;
                 }
 
-                $sale->update(['total_amount' => $total]);
+                $subtotal = $item->price * $data['qty'];
 
-                return $sale;
-            });
+                $sale->saleItems()->create([
+                    'item_id'    => $item->id,
+                    'quantity'   => $data['qty'],
+                    'price'      => $item->price,
+                    'subtotal'   => $subtotal,
+                    'created_by' => $loggedUser->id,
+                    'updated_by' => $loggedUser->id,
+                ]);
 
-            return redirect()->route('sales.index')->with('success', "Sale: {$sale->invoice_number} updated successfully.");
-        } catch (\Exception $e) {
-            return redirect()->route('sales.edit', $id)->withInput()->with('error', $e->getMessage());
-        }
+                $total += $subtotal;
+            }
+
+            $sale->update(['total_amount' => $total]);
+
+            return $sale;
+        });
+
+        return redirect()->route('sales.index')->with('success', "Sale: {$sale->invoice_number} updated successfully.");
     }
 
     /**
