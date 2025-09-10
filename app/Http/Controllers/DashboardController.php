@@ -19,6 +19,19 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
+        $driver = DB::getDriverName();
+        switch ($driver) {
+            case 'mysql':
+                $dayExpr = "DAY(transaction_date)";
+                break;
+            case 'pgsql':
+                $dayExpr = "CAST(TO_CHAR(transaction_date, 'DD') AS INTEGER)";
+                break;
+            default:
+                $dayExpr = "CAST(strftime('%d', transaction_date) AS INTEGER)";
+                break;
+        }
+        
         $loggedUser = Auth::user();
         if ($loggedUser->role === UserRole::USER) {
             return redirect()->back()->with('error', 'You do not have permission to access this page.');
@@ -72,24 +85,13 @@ class DashboardController extends Controller
             ->whereIn('status', Sale::unpaidStatuses())
             ->count();
 
-        $paymentChannels = Payment::whereMonth('transaction_date', $selectedMonth)
-            ->whereYear('transaction_date', $selectedYear)
+        $paymentChannels = Payment::whereHas('sale', function ($q) use ($selectedMonth, $selectedYear) {
+            $q->whereMonth('transaction_date', $selectedMonth)
+                ->whereYear('transaction_date', $selectedYear);
+        })
             ->select('method', DB::raw('COUNT(*) as total'))
             ->groupBy('method')
             ->pluck('total', 'method');
-
-        $driver = DB::getDriverName();
-        switch ($driver) {
-            case 'mysql':
-                $dayExpr = "DAY(transaction_date)";
-                break;
-            case 'pgsql':
-                $dayExpr = "CAST(TO_CHAR(transaction_date, 'DD') AS INTEGER)";
-                break;
-            default:
-                $dayExpr = "CAST(strftime('%d', transaction_date) AS INTEGER)";
-                break;
-        }
 
         $thisMonthSales = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
             ->whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])

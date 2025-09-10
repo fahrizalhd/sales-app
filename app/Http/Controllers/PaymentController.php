@@ -85,69 +85,53 @@ class PaymentController extends Controller
         $loggedUser = Auth::user();
 
         DB::transaction(function () use ($request, $sale, $loggedUser) {
-            $paymentStatus = $request->method === PaymentMethod::CASH->value
-                ? PaymentStatus::SUCCESS->value
-                : PaymentStatus::PENDING->value;
+            $isCash = $request->method === PaymentMethod::CASH->value;
+            $isNonCash = in_array($request->method, [PaymentMethod::QRIS->value, PaymentMethod::DEBIT->value]);
 
-            Payment::create([
+            $payment = Payment::create([
                 'sale_id'       => $sale->id,
                 'amount'        => $request->amount,
                 'method'        => $request->method,
-                'status'        => $paymentStatus,
-                'approved_at'   => $request->method === PaymentMethod::CASH->value ? now() : null,
+                'status'        => $isCash ? PaymentStatus::SUCCESS->value : PaymentStatus::PENDING->value,
+                'approved_at'   => $isCash ? now() : null,
                 'created_by'    => $loggedUser->id,
                 'updated_by'    => $loggedUser->id,
             ]);
 
-            // Prevent duplicate stock adjustment
-            $alreadyAdjusted = StockHistory::whereIn('item_id', $sale->saleItems()->pluck('item_id'))
-                ->where('reason', "Sale #{$sale->invoice_number}")
-                ->exists();
-
-            if ($alreadyAdjusted) {
-                return redirect()->back()->with('warning', 'Stock for this sale has already been adjusted.');
-            }
-
-            // Adjust stock for each item in the sale
             foreach ($sale->saleItems as $saleItem) {
                 $item = Item::whereKey($saleItem->item_id)->lockForUpdate()->first();
-                if (!$item) {
-                    return redirect()->back()->with('warning', "Item not found (ID: {$saleItem->item_id}, SKU: {$saleItem->item->sku})");
+                if ($item->quantity < $saleItem->quantity) {
+                    throw new \Exception("Insufficient stock for {$item->name}");
                 }
 
-                $oldQty = (int) $item->quantity;
-                $decrease = (int) $saleItem->quantity;
-                if ($oldQty < $decrease) {
-                    return redirect()->back()->with('warning', "Insufficient stock for {$item->name}. Available: {$oldQty}, required: {$decrease}.");
-                }
+                $oldQty = $item->quantity;
+                $newQty = $oldQty - $saleItem->quantity;
 
-                $newQty = $oldQty - $decrease;
                 $item->update([
-                    'quantity'      => $newQty,
-                    'updated_by'    => $loggedUser->id,
+                    'quantity'   => $newQty,
+                    'updated_by' => $loggedUser->id,
                 ]);
 
                 StockHistory::create([
-                    'item_id'       => $item->id,
-                    'change'        => -$decrease,
-                    'old_quantity'  => $oldQty,
-                    'new_quantity'  => $newQty,
-                    'reason'        => "Sale #{$sale->invoice_number}",
-                    'created_by'    => $loggedUser->id,
-                    'updated_by'    => $loggedUser->id,
+                    'item_id'      => $item->id,
+                    'change'       => -$saleItem->quantity,
+                    'old_quantity' => $oldQty,
+                    'new_quantity' => $newQty,
+                    'reason'       => "Sale #{$sale->invoice_number}",
+                    'created_by'   => $loggedUser->id,
+                    'updated_by'   => $loggedUser->id,
                 ]);
             }
 
-            // Update sale status depending on payment method
-            if ($request->method === PaymentMethod::CASH->value) {
+            if ($isCash) {
                 $sale->update([
-                    'status'        => SaleStatus::PAID->value,
-                    'updated_by'    => $loggedUser->id,
+                    'status'     => SaleStatus::PAID->value,
+                    'updated_by' => $loggedUser->id,
                 ]);
-            } elseif (in_array($request->method, [PaymentMethod::QRIS->value, PaymentMethod::DEBIT->value])) {
+            } elseif ($isNonCash) {
                 $sale->update([
-                    'status'        => SaleStatus::NEED_REVIEW->value,
-                    'updated_by'    => $loggedUser->id,
+                    'status'     => SaleStatus::NEED_REVIEW->value,
+                    'updated_by' => $loggedUser->id,
                 ]);
             }
         });
@@ -185,6 +169,10 @@ class PaymentController extends Controller
     public function approve($id)
     {
         $payment = Payment::findOrFail($id);
+        if ($payment->status !== PaymentStatus::PENDING->value) {
+            return redirect()->back()->with('warning', 'Payment is not pending or already approved.');
+        }
+
         $payment->update([
             'status'        => PaymentStatus::SUCCESS->value,
             'approved_at'   => now(),

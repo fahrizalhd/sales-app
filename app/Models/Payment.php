@@ -6,7 +6,6 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Traits\Blameable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Payment extends Model
 {

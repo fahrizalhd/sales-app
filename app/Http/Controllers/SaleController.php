@@ -16,7 +16,6 @@ class SaleController extends Controller
     /**
      * Display a listing of the sales with filtering and sorting.
      *
-     * @return \Illuminate\View\View
      */
     public function index()
     {
@@ -50,7 +49,6 @@ class SaleController extends Controller
     /**
      * Show the form for creating a new sale.
      *
-     * @return \Illuminate\View\View
      */
     public function create()
     {
@@ -63,8 +61,6 @@ class SaleController extends Controller
     /**
      * Store a newly created resource in storage.
      * 
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request)
     {
@@ -121,8 +117,6 @@ class SaleController extends Controller
     /**
      * Show the form for editing the specified item.
      *
-     * @param  string  $id
-     * @return \Illuminate\View\View
      */
     public function edit(string $id)
     {
@@ -140,9 +134,6 @@ class SaleController extends Controller
     /**
      * Update the specified sale in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  string  $id
-     * @return \Illuminate\Http\RedirectResponse
      */
     public function update(Request $request, string $id)
     {
