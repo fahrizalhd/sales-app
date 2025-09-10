@@ -33,20 +33,22 @@
                 @endif
             </form>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 <!-- Revenue -->
-                <div class="col-span-1 md:col-span-2 lg:col-span-3 bg-white overflow-hidden shadow-sm sm:rounded-lg p-4">
+                <div class="col-span-2 md:col-span-4 lg:col-span-6 bg-white overflow-hidden shadow-sm sm:rounded-lg p-4">
                     <h4 class="text-md text-gray-700 uppercase font-semibold mb-4">Revenue</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <span class="block text-gray-500 text-sm">This Week</span>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="col-span-1 md:col-span-1 lg:col-span-1">
+                            <span class="block text-sm text-gray-500">
+                                This Week <span class="text-xs text-gray-400">({{ $thisWeekRange }})</span>
+                            </span>
                             <span class="text-md font-semibold text-gray-800 block">{{ format_rupiah($thisWeekRevenue) }}</span>
                             <span class="text-sm font-medium text-gray-600">
                                 Unearned:
                                 <span class="text-red-600">{{ format_rupiah($thisWeekUnearnedRevenue) }}</span>
                             </span>
                         </div>
-                        <div>
+                        <div class="col-span-1 md:col-span-1 lg:col-span-1">
                             <span class="block text-gray-500 text-sm">This Month</span>
                             @php
                                 $isUp = $thisMonthRevenue > $lastMonthRevenue;
@@ -77,7 +79,7 @@
                                 <span class="text-red-600">{{ format_rupiah($thisMonthUnearnedRevenue) }}</span>
                             </span>
                         </div>
-                        <div>
+                        <div class="col-span-1 md:col-span-1 lg:col-span-1">
                             <span class="block text-gray-500 text-sm">Last Month</span>
                             <span class="text-md font-semibold text-gray-800 block">{{ format_rupiah($lastMonthRevenue) }}</span>
                             <span class="text-sm font-medium text-gray-600">
@@ -89,31 +91,31 @@
                 </div>
 
                 <!-- Top Items Chart -->
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 max-h-96">
+                <div class="col-span-2 md:col-span-4 lg:col-span-2 bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 max-h-96">
                     <h4 class="text-md text-gray-700 uppercase font-semibold mb-4">Top Items</h4>
                     <canvas id="topItemsChart"></canvas>
                 </div>
 
                 <!-- Paid vs Unpaid Sales Chart -->
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 max-h-96">
+                <div class="col-span-1 md:col-span-2 lg:col-span-2 bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 max-h-96">
                     <h4 class="text-md text-gray-700 uppercase font-semibold mb-4">Paid vs Unpaid Sales</h4>
                     <canvas class="mx-auto" id="paidUnpaidChart"></canvas>
                 </div>
 
                 <!-- Payment Channel Chart -->
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 max-h-96">
+                <div class=" col-span-1 md:col-span-2 lg:col-span-2 bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 max-h-96">
                     <h4 class="text-md text-gray-700 uppercase font-semibold mb-4">Payment Channel</h4>
                     <canvas class="mx-auto" id="paymentChannelChart"></canvas>
                 </div>
 
                 <!-- Sales Comparison Chart -->
-                <div class="col-span-1 md:col-span-2 lg:col-span-3 bg-white overflow-hidden shadow-sm sm:rounded-lg p-4">
+                <div class="col-span-2 md:col-span-4 lg:col-span-6 bg-white overflow-hidden shadow-sm sm:rounded-lg p-4">
                     <h4 class="text-md text-gray-700 uppercase font-semibold mb-4">Sales Comparison</h4>
                     <canvas id="salesChart" height="100"></canvas>
                 </div>
 
                 <!-- Last 10 Sales -->
-                <div class="col-span-1 md:col-span-2 lg:col-span-3 bg-white overflow-hidden shadow-sm sm:rounded-lg p-4">
+                <div class="col-span-2 md:col-span-4 lg:col-span-6 bg-white overflow-hidden shadow-sm sm:rounded-lg p-4">
                     <h4 class="text-md text-gray-700 uppercase font-semibold mb-4">Last 10 Sales</h4>
                     <div class="relative overflow-x-auto sm:rounded-lg">
                         <table class="w-full text-sm text-center rtl:text-right text-gray-500">
@@ -122,29 +124,36 @@
                                     <th class="px-6 py-3 text-left">Invoice Number</th>
                                     <th class="px-6 py-3">Customer</th>
                                     <th class="px-6 py-3">Date</th>
-                                    <th class="px-6 py-3">Total</th>
+                                    <th class="px-6 py-3">Amount</th>
                                     <th class="px-6 py-3">Status</th>
+                                    <th class="px-6 py-3">Handler</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($latestSales as $sale)
-                                    <tr class="bg-white border-b border-gray-200 hover:bg-gray-50">
-                                        <td class="px-6 py-4 text-left font-semibold">{{ $sale->invoice_number }}</td>
-                                        <td class="px-6 py-4">{{ $sale->customer_name }}</td>
-                                        <td class="px-6 py-4 font-semibold">{{ format_date_with_time($sale->created_at) }}</td>
-                                        <td class="px-6 py-4">{{ format_rupiah($sale->total_amount) }}</td>
-                                        <td class="px-6 py-4">
-                                            @if ($sale->is_paid)
-                                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-1 rounded-full">Paid</span>
-                                            @else
-                                                <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-1 rounded-full">Not Yet Paid</span>
-                                            @endif
-                                        </td>
-                                    </tr>
+                                <tr class="bg-white border-b border-gray-200 hover:bg-gray-50">
+                                    <td class="px-6 py-4 text-left font-semibold">{{ $sale->invoice_number }}</td>
+                                    <td class="px-6 py-4">{{ $sale->customer_name }}</td>
+                                    <td class="px-6 py-4 font-semibold">{{ format_date_with_time($sale->created_at) }}</td>
+                                    <td class="px-6 py-4">{{ format_rupiah($sale->total_amount) }}</td>
+                                    @php
+                                    $colors = [
+                                    \App\Enums\SaleStatus::PAID->value => 'bg-green-100 text-green-800',
+                                    \App\Enums\SaleStatus::PARTIALLY_PAID->value => 'bg-blue-100 text-blue-800',
+                                    \App\Enums\SaleStatus::UNPAID->value => 'bg-yellow-100 text-yellow-800',
+                                    \App\Enums\SaleStatus::NEED_REVIEW->value => 'bg-orange-100 text-orange-800',
+                                    \App\Enums\SaleStatus::CANCELLED->value => 'bg-red-100 text-red-800',
+                                    ];
+                                    @endphp
+                                    <td class="px-6 py-4">
+                                        <span class="{{ $colors[$sale->status->value] }} text-xs font-medium px-2.5 py-1 rounded-full">
+                                            {{ $sale->status->label() }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">{{ $sale->createdBy->name }}</th>
+                                </tr>
                                 @empty
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-4 text-center text-gray-500 italic">No sales found</td>
-                                    </tr>
+                                <tr><td colspan="6" class="px-6 py-4 text-center text-gray-500 italic">No sales found</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -338,7 +347,7 @@
                             }
                         }
                     }
-                }
+                },
             }
         });
     }

@@ -31,7 +31,7 @@ class DashboardController extends Controller
                 $dayExpr = "CAST(strftime('%d', transaction_date) AS INTEGER)";
                 break;
         }
-        
+
         $loggedUser = Auth::user();
         if ($loggedUser->role === UserRole::USER) {
             return redirect()->back()->with('error', 'You do not have permission to access this page.');
@@ -40,21 +40,38 @@ class DashboardController extends Controller
         $selectedMonth = $request->input('month', now()->month);
         $selectedYear  = $request->input('year', now()->year);
 
-        $now = Carbon::create($selectedYear, $selectedMonth, 1);
-        $lastMonth = $now->copy()->subMonth();
+        $today = now();
+        $weekIndex = $today->weekOfMonth;
 
-        $thisWeekStart  = $now->copy()->startOfWeek(Carbon::MONDAY);
-        $thisWeekEnd    = $now->copy()->endOfWeek(Carbon::SUNDAY);
-        $thisMonthStart = $now->copy()->startOfMonth();
-        $thisMonthEnd   = $now->copy()->endOfMonth();
+        $selectedDate = Carbon::create($selectedYear, $selectedMonth, 1);
+        $lastMonth = $selectedDate->copy()->subMonth();
+
+        $targetDate = $selectedDate->copy()->addWeeks($weekIndex - 1);
+        if ($targetDate->month != $selectedMonth) {
+            $targetDate = $selectedDate->copy()->endOfMonth();
+        }
+
+        $thisWeekStart = $targetDate->copy()->startOfWeek(Carbon::MONDAY);
+        $thisWeekEnd   = $targetDate->copy()->endOfWeek(Carbon::SUNDAY);
+        if ($thisWeekStart->month != $selectedMonth) {
+            $thisWeekStart = $selectedDate->copy()->startOfMonth();
+        }
+        if ($thisWeekEnd->month != $selectedMonth) {
+            $thisWeekEnd = $selectedDate->copy()->endOfMonth();
+        }
+
+        $thisMonthStart = $selectedDate->copy()->startOfMonth();
+        $thisMonthEnd   = $selectedDate->copy()->endOfMonth();
         $lastMonthStart = $lastMonth->copy()->startOfMonth();
         $lastMonthEnd   = $lastMonth->copy()->endOfMonth();
 
         $thisWeekRange  = $thisWeekStart->format('d F Y') . ' - ' . $thisWeekEnd->format('d F Y');
-        $thisMonthName  = $now->format('F Y');
+        $thisMonthName  = $selectedDate->format('F Y');
         $lastMonthName  = $lastMonth->format('F Y');
 
-        $thisWeekRevenue = Sale::whereBetween('transaction_date', [$thisWeekStart, $thisWeekEnd])->sum('total_amount');
+        $thisWeekRevenue = Sale::whereBetween('transaction_date', [$thisWeekStart, $thisWeekEnd])
+            ->sum('total_amount');
+
         $thisWeekUnearnedRevenue = Sale::whereBetween('transaction_date', [$thisWeekStart, $thisWeekEnd])
             ->whereIn('status', Sale::unpaidStatuses())
             ->sum('total_amount');

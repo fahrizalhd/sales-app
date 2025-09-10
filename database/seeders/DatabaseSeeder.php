@@ -29,7 +29,7 @@ class DatabaseSeeder extends Seeder
         // Call the SaleFactory to seed sales
         $randomUser = User::where('role', UserRole::USER->value)->inRandomOrder()->first();
         Auth::login($randomUser);
-        Sale::factory()->count(40)->create();
+        Sale::factory()->count(100)->create();
         Auth::logout();
     }
 }

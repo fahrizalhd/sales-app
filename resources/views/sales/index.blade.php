@@ -49,7 +49,7 @@
                             <th scope="col" class="px-6 py-3 text-left">Invoice Number</th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="customer_name" label="Customer"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="transaction_date" label="Date"></x-sort-link></th>
-                            <th scope="col" class="px-6 py-3"><x-sort-link column="total_amount" label="Total"></x-sort-link></th>
+                            <th scope="col" class="px-6 py-3"><x-sort-link column="total_amount" label="Amount"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="status" label="Status"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="created_by" label="Handler"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"></th>
