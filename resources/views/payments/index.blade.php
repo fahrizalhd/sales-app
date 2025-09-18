@@ -35,16 +35,25 @@
                     <tbody>
                         @forelse($payments as $payment)
                         <tr data-href="{{ route('payments.show', $payment->id) }}" class="bg-white border-b border-gray-200 hover:bg-gray-50 cursor-pointer">
-                            <td class="px-6 py-4 text-left font-semibold">{{ $payment->sale->invoice_number }}</th>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-2">
+                                    <span>{{ $payment->sale->invoice_number }}</span>
+                                    <button type="button" class="copy-btn text-gray-500 hover:text-gray-700" data-clipboard-text="{{ $payment->sale->invoice_number }}">
+                                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                            <path stroke="currentColor" stroke-linejoin="round" stroke-width="2" d="M9 8v3a1 1 0 0 1-1 1H5m11 4h2a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1h-7a1 1 0 0 0-1 1v1m4 3v10a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-7.13a1 1 0 0 1 .24-.65L7.7 8.35A1 1 0 0 1 8.46 8H13a1 1 0 0 1 1 1Z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
                             <td class="px-6 py-4">{{ $payment->sale->customer_name }}</td>
                             <td class="px-6 py-4">{{ format_rupiah($payment->amount) }}</td>
-                            <td class="px-6 py-4">{{ \App\Enums\PaymentMethod::tryFrom($payment->method->value)?->label() ?? 'Unknown' }}</th>
+                            <td class="px-6 py-4">{{ \App\Enums\PaymentMethod::tryFrom($payment->method->value)?->label() ?? 'Unknown' }}</td>
                             @php
                             $status = \App\Enums\PaymentStatus::tryFrom($payment->status->value);
                             $badgeClasses = match($status) {
                             \App\Enums\PaymentStatus::SUCCESS => 'bg-green-100 text-green-800',
                             \App\Enums\PaymentStatus::PENDING => 'bg-yellow-100 text-yellow-800',
-                            \App\Enums\PaymentStatus::FAILED => 'bg-red-100 text-red-800',
+                            \App\Enums\PaymentStatus::REJECTED => 'bg-red-100 text-red-800',
                             default => 'bg-gray-100 text-gray-800',
                             };
                             @endphp
@@ -53,15 +62,17 @@
                             </td>
                             <td class="px-6 py-4">{{ $payment->createdBy->name }} by {{ format_date_with_time($payment->created_at) }}</td>
                             <td class="px-6 py-4">
-                            @if ($payment->status == \App\Enums\PaymentStatus::PENDING)
+                                @if ($payment->status == \App\Enums\PaymentStatus::PENDING)
                                 <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-1 rounded-full">Not Approved Yet</span>
-                            @elseif ($payment->status == \App\Enums\PaymentStatus::SUCCESS)
+                                @elseif ($payment->status == \App\Enums\PaymentStatus::SUCCESS)
                                 {{ format_date_with_time($payment->approved_at) }}
-                            @endif
+                                @endif
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="7" class="px-6 py-4 text-center text-gray-500 italic">No payments found</td></tr>
+                        <tr>
+                            <td colspan="7" class="px-6 py-4 text-center text-gray-500 bg-gray-50 italic">No payments found</td>
+                        </tr>
                         @endforelse
                     </tbody>
                 </table>

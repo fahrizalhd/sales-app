@@ -64,8 +64,7 @@ class PaymentController extends Controller
         $sale = Sale::with('saleItems.item')->findOrFail($id);
         $saleStatus = $sale->status;
         if ($saleStatus === SaleStatus::CANCELLED || $saleStatus === SaleStatus::PAID) {
-            return redirect()->route('sales.index')
-                ->with('error', 'Only UNPAID or PARTIALLY PAID sales can be proceed to payment.');
+            return redirect()->route('sales.index')->with('error', 'Only UNPAID or PARTIALLY PAID sales can be proceed to payment.');
         }
 
         return view('payments.create', compact('sale'));
@@ -85,14 +84,16 @@ class PaymentController extends Controller
         $loggedUser = Auth::user();
 
         DB::transaction(function () use ($request, $sale, $loggedUser) {
-            $isCash = $request->method === PaymentMethod::CASH->value;
-            $isNonCash = in_array($request->method, [PaymentMethod::QRIS->value, PaymentMethod::DEBIT->value]);
+            $method = PaymentMethod::from($request->method);
+            $isCash = $method === PaymentMethod::CASH;
+            $isNonCash = in_array($method, [PaymentMethod::QRIS, PaymentMethod::DEBIT]);
+
 
             $payment = Payment::create([
                 'sale_id'       => $sale->id,
                 'amount'        => $request->amount,
                 'method'        => $request->method,
-                'status'        => $isCash ? PaymentStatus::SUCCESS->value : PaymentStatus::PENDING->value,
+                'status'        => $isCash ? PaymentStatus::SUCCESS : PaymentStatus::PENDING,
                 'approved_at'   => $isCash ? now() : null,
                 'created_by'    => $loggedUser->id,
                 'updated_by'    => $loggedUser->id,
@@ -101,7 +102,7 @@ class PaymentController extends Controller
             foreach ($sale->saleItems as $saleItem) {
                 $item = Item::whereKey($saleItem->item_id)->lockForUpdate()->first();
                 if ($item->quantity < $saleItem->quantity) {
-                    throw new \Exception("Insufficient stock for {$item->name}");
+                    return redirect()->route('sales.payments.create', $sale->id)->with('error', "Insufficient stock for {$item->name}");
                 }
 
                 $oldQty = $item->quantity;
@@ -125,12 +126,12 @@ class PaymentController extends Controller
 
             if ($isCash) {
                 $sale->update([
-                    'status'     => SaleStatus::PAID->value,
+                    'status'     => SaleStatus::PAID,
                     'updated_by' => $loggedUser->id,
                 ]);
             } elseif ($isNonCash) {
                 $sale->update([
-                    'status'     => SaleStatus::NEED_REVIEW->value,
+                    'status'     => SaleStatus::NEED_REVIEW,
                     'updated_by' => $loggedUser->id,
                 ]);
             }
@@ -169,21 +170,21 @@ class PaymentController extends Controller
     public function approve($id)
     {
         $payment = Payment::findOrFail($id);
-        if ($payment->status !== PaymentStatus::PENDING->value) {
+        if ($payment->status !== PaymentStatus::PENDING) {
             return redirect()->back()->with('warning', 'Payment is not pending or already approved.');
         }
 
         $payment->update([
-            'status'        => PaymentStatus::SUCCESS->value,
+            'status'        => PaymentStatus::SUCCESS,
             'approved_at'   => now(),
         ]);
 
         if ($payment->sale->status !== SaleStatus::PAID) {
-            $payment->sale->update(['status' => SaleStatus::PAID->value]);
+            $payment->sale->update(['status' => SaleStatus::PAID]);
         }
+        
 
-        return redirect()->route('payments.index', $id)
-            ->with('success', 'Payment approved successfully.');
+        return redirect()->route('payments.index', $id)->with('success', 'Payment approved successfully.');
     }
 
     /**
@@ -194,11 +195,14 @@ class PaymentController extends Controller
     {
         $payment = Payment::findOrFail($id);
         $payment->update([
-            'status'        => PaymentStatus::REJECTED->value,
-            'rejeted_at'    => now(),
+            'status'        => PaymentStatus::REJECTED,
+            'rejected_at'    => now(),
         ]);
 
-        return redirect()->route('payments.show', $id)
-            ->with('error', 'Payment rejected.');
+        if ($payment->sale->status === SaleStatus::NEED_REVIEW) {
+            $payment->sale->update(['status' => SaleStatus::UNPAID]);
+        }
+
+        return redirect()->route('payments.show', $id)->with('error', 'Payment rejected.');
     }
 }

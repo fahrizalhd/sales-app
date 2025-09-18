@@ -16,7 +16,7 @@
                 <table class="w-full text-sm text-center rtl:text-right text-gray-500">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-left"><x-sort-link column="name" label="Name"></x-sort-link></th>
+                            <th scope="col" class="px-6 py-3"><x-sort-link column="name" label="Name"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="email" label="Email"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="role" label="Role"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="last_login_at" label="Last Login"></x-sort-link></th>
@@ -26,10 +26,10 @@
                     <tbody>
                         @forelse($users as $user)
                         <tr data-href="{{ route('users.edit', $user) }}" class="bg-white border-b border-gray-200 hover:bg-gray-50 cursor-pointer">
-                            <td class="px-6 py-4 text-left">{{ $user->name }}</th>
-                            <td class="px-6 py-4">{{ $user->email }}</td>
-                            <td class="px-6 py-4">{{ \App\Enums\UserRole::tryFrom($user->role->value)?->label() ?? 'Unknown' }}</td>
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-2">{{ $user->name }}</th>
+                            <td class="px-6 py-2">{{ $user->email }}</td>
+                            <td class="px-6 py-2">{{ \App\Enums\UserRole::tryFrom($user->role->value)?->label() ?? 'Unknown' }}</td>
+                            <td class="px-6 py-2">
                                 @if($user->last_login_at)
                                 <span class="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center gap-2 px-2 py-1 rounded-sm">
                                     <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
@@ -41,7 +41,7 @@
                                 <span class="text-gray-400 italic">Never</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-2">
                                 <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline ml-2" onsubmit="return confirm('Delete user?')">
                                     @csrf @method('DELETE')
                                     <button class="inline-flex items-center justify-center p-2 text-red-500 rounded-full hover:bg-red-100 hover:text-red-600 transition-colors duration-200">
@@ -51,7 +51,7 @@
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="5" class="px-6 py-4 text-center text-gray-500 italic">No users found</td></tr>
+                        <tr><td colspan="5" class="px-6 py-4 text-center text-gray-500 bg-gray-50 italic">No users found</td></tr>
                         @endforelse
                     </tbody>
                 </table>

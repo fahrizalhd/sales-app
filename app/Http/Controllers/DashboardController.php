@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
 use App\Enums\UserRole;
 use App\Models\Payment;
 use App\Models\Sale;
@@ -102,23 +104,48 @@ class DashboardController extends Controller
             ->whereIn('status', Sale::unpaidStatuses())
             ->count();
 
-        $paymentChannels = Payment::whereHas('sale', function ($q) use ($selectedMonth, $selectedYear) {
-            $q->whereMonth('transaction_date', $selectedMonth)
-                ->whereYear('transaction_date', $selectedYear);
-        })
+        $paymentChannels = Payment::where('status', PaymentStatus::SUCCESS)
+            ->whereHas('sale', function ($q) use ($selectedMonth, $selectedYear) {
+                $q->whereMonth('transaction_date', $selectedMonth)
+                    ->whereYear('transaction_date', $selectedYear);
+            })
             ->select('method', DB::raw('COUNT(*) as total'))
             ->groupBy('method')
             ->pluck('total', 'method');
 
-        $thisMonthSales = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
+        // $thisMonthSales = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
+        //     ->whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])
+        //     ->groupBy('day')
+        //     ->orderBy('day')
+        //     ->pluck('total', 'day')
+        //     ->toArray();
+
+        // $lastMonthSales = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
+        //     ->whereBetween('transaction_date', [$lastMonthStart, $lastMonthEnd])
+        //     ->groupBy('day')
+        //     ->orderBy('day')
+        //     ->pluck('total', 'day')
+        //     ->toArray();
+
+        $thisMonthSalesRaw = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
             ->whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])
             ->groupBy('day')
             ->pluck('total', 'day');
 
-        $lastMonthSales = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
+        $lastMonthSalesRaw = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
             ->whereBetween('transaction_date', [$lastMonthStart, $lastMonthEnd])
             ->groupBy('day')
             ->pluck('total', 'day');
+
+        $thisMonthSales = [];
+        for ($i = 1; $i <= $thisMonthStart->daysInMonth; $i++) {
+            $thisMonthSales[$i] = $thisMonthSalesRaw[$i] ?? 0;
+        }
+
+        $lastMonthSales = [];
+        for ($i = 1; $i <= $lastMonthStart->daysInMonth; $i++) {
+            $lastMonthSales[$i] = $lastMonthSalesRaw[$i] ?? 0;
+        }
 
         $topItems = SaleItem::select('item_id', DB::raw('SUM(quantity) as total_qty'))
             ->whereHas('sale', function ($query) use ($selectedMonth, $selectedYear) {

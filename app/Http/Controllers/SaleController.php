@@ -52,7 +52,8 @@ class SaleController extends Controller
      */
     public function create()
     {
-        $items = Item::where('is_active', true)->get();
+        $items = Item::where('is_active', true)->get()
+            ->where('quantity', '>', 0);
         $invoice_number = Sale::generateInvoiceNumber();
 
         return view('sales.create', compact('items', 'invoice_number'));
@@ -163,7 +164,6 @@ class SaleController extends Controller
 
                 if ($data['qty'] > $item->quantity) {
                     return redirect()->back()->with('warning', "Insufficient stock for {$item->name} (available: {$item->quantity}).");
-
                 }
 
                 $subtotal = $item->price * $data['qty'];

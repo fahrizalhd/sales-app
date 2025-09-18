@@ -58,10 +58,19 @@
                     <tbody>
                         @forelse($sales as $sale)
                         <tr data-href="{{ route('sales.edit', $sale) }}" class="bg-white border-b border-gray-200 hover:bg-gray-50 cursor-pointer">
-                            <td class="px-6 py-4 text-left font-semibold">{{ $sale->invoice_number }}</th>
-                            <td class="px-6 py-4">{{ $sale->customer_name }}</th>
-                            <td class="px-6 py-4 font-semibold">{{ format_date_with_time($sale->transaction_date) }}</th>
-                            <td class="px-6 py-4">{{ format_rupiah($sale->total_amount) }}</td>
+                            <td class="px-6 py-2 font-semibold">
+                                <div class="flex items-center gap-2">
+                                    <span>{{ $sale->invoice_number }}</span>
+                                    <button type="button" class="copy-btn text-gray-500 hover:text-gray-700" data-clipboard-text="{{ $sale->invoice_number }}">
+                                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                            <path stroke="currentColor" stroke-linejoin="round" stroke-width="2" d="M9 8v3a1 1 0 0 1-1 1H5m11 4h2a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1h-7a1 1 0 0 0-1 1v1m4 3v10a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-7.13a1 1 0 0 1 .24-.65L7.7 8.35A1 1 0 0 1 8.46 8H13a1 1 0 0 1 1 1Z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                            <td class="px-6 py-2">{{ $sale->customer_name }}</td>
+                            <td class="px-6 py-2 font-semibold">{{ format_date_with_time($sale->transaction_date) }}</td>
+                            <td class="px-6 py-2">{{ format_rupiah($sale->total_amount) }}</td>
                             @php
                             $colors = [
                             \App\Enums\SaleStatus::PAID->value => 'bg-green-100 text-green-800',
@@ -71,13 +80,13 @@
                             \App\Enums\SaleStatus::CANCELLED->value => 'bg-red-100 text-red-800',
                             ];
                             @endphp
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-2">
                                 <span class="{{ $colors[$sale->status->value] }} text-xs font-medium px-2.5 py-1 rounded-full">
                                     {{ $sale->status->label() }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4">{{ $sale->createdBy->name }}</th>
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-2">{{ $sale->createdBy->name }}</th>
+                            <td class="px-6 py-2">
                                 <div class="flex justify-center items-center gap-2">
                                     @if ($sale->status === \App\Enums\SaleStatus::UNPAID || $sale->status === \App\Enums\SaleStatus::PARTIALLY_PAID)
                                     <a href="{{ route('sales.payments.create', $sale->id) }}"
@@ -99,7 +108,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-4 text-center text-gray-500 italic">No sales found</td>
+                            <td colspan="7" class="px-6 py-4 text-center text-gray-500 bg-gray-50 italic">No sales found</td>
                         </tr>
                         @endforelse
                     </tbody>

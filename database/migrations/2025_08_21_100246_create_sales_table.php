@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\SaleStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,7 +18,7 @@ return new class extends Migration
             $table->string('customer_name');
             $table->timestamp('transaction_date');
             $table->decimal('total_amount', 12, 2)->default(0);
-            $table->string('status')->default('UNPAID');
+            $table->string('status')->default(SaleStatus::UNPAID);
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->foreignId('updated_by')->constrained('users')->onDelete('cascade');
             $table->timestamps();

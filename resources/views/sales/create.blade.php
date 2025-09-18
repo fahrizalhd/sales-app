@@ -45,7 +45,7 @@
                                         <tr>
                                             <td class="px-4 py-2">
                                                 <select name="saleItems[{{ $index }}][id]"
-                                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 item-select">
+                                                    class="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 item-select">
                                                     <option value="">-- Select Item --</option>
                                                     @foreach ($items as $item)
                                                     <option value="{{ $item->id }}" 
@@ -102,7 +102,7 @@
                     </div>
                     <div class="flex items-end justify-end gap-2 mt-4">
                         <a href="{{ route('sales.index') }}"
-                            class="py-2.5 px-5  text-sm font-medium text-gray-900 focus:outline-none bg-none rounded-lg hover:bg-gray-100 hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-100">
+                            class="py-2.5 px-5  text-sm font-medium text-gray-900 bg-none rounded-lg hover:bg-gray-100 hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-100 focus:outline-none">
                             Cancel
                         </a>
                         <button type="submit"
@@ -164,7 +164,7 @@
         newRow.innerHTML = `
             <td class="px-4 py-2">
                 <select name="saleItems[${rowIndex}][id]" 
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 item-select">
+                    class="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 item-select">
                     <option value="">-- Select Item --</option>
                     @foreach ($items as $item)
                     <option value="{{ $item->id }}" data-price="{{ $item->price }}">

@@ -39,51 +39,48 @@
                     <h4 class="text-md text-gray-700 uppercase font-semibold mb-4">Revenue</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div class="col-span-1 md:col-span-1 lg:col-span-1">
-                            <span class="block text-sm text-gray-500">
-                                This Week <span class="text-xs text-gray-400">({{ $thisWeekRange }})</span>
+                            <span class="block text-sm text-gray-500">This Week <span class="text-xs text-gray-400">({{ $thisWeekRange }})</span>
                             </span>
                             <span class="text-md font-semibold text-gray-800 block">{{ format_rupiah($thisWeekRevenue) }}</span>
-                            <span class="text-sm font-medium text-gray-600">
-                                Unearned:
+                            <span class="text-sm font-medium text-gray-600">Unearned:
                                 <span class="text-red-600">{{ format_rupiah($thisWeekUnearnedRevenue) }}</span>
                             </span>
                         </div>
                         <div class="col-span-1 md:col-span-1 lg:col-span-1">
                             <span class="block text-gray-500 text-sm">This Month</span>
                             @php
-                                $isUp = $thisMonthRevenue > $lastMonthRevenue;
-                                $percentage = $lastMonthRevenue > 0
-                                    ? round((($thisMonthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100, 1)
-                                    : 100;
+                            $isUp = $thisMonthRevenue > $lastMonthRevenue;
+                            $percentage = $lastMonthRevenue > 0 ? round((($thisMonthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100, 1)
+                                : 100;
                             @endphp
                             <span class="text-md font-semibold flex items-center {{ $isUp ? 'text-green-600' : 'text-red-600' }}">
                                 {{ format_rupiah($thisMonthRevenue) }}
+                                @if($lastMonthRevenue > 0)
                                 <span class="inline-flex items-center ml-2">
                                     @if($isUp)
-                                        <svg class="w-[16px] h-[16px] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path fill-rule="evenodd" d="M5.575 13.729C4.501 15.033 5.43 17 7.12 17h9.762c1.69 0 2.618-1.967 1.544-3.271l-4.881-5.927a2 2 0 0 0-3.088 0l-4.88 5.927Z" clip-rule="evenodd" />
-                                        </svg>
-                                        <span class="text-sm font-medium">+{{ $percentage }}% from last month</span>
+                                    <svg class="w-[16px] h-[16px] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd" d="M5.575 13.729C4.501 15.033 5.43 17 7.12 17h9.762c1.69 0 2.618-1.967 1.544-3.271l-4.881-5.927a2 2 0 0 0-3.088 0l-4.88 5.927Z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span class="text-sm font-medium">+{{ $percentage }}% from last month</span>
                                     @else
-                                        <svg class="w-[16px] h-[16px] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path fill-rule="evenodd" d="M18.425 10.271C19.499 8.967 18.57 7 16.88 7H7.12c-1.69 0-2.618 1.967-1.544 3.271l4.881 5.927a2 2 0 0 0 3.088 0l4.88-5.927Z" clip-rule="evenodd" />
-                                        </svg>
-                                        <span class="text-sm font-medium">-{{ abs($percentage) }}% from last month</span>
+                                    <svg class="w-[16px] h-[16px] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd" d="M18.425 10.271C19.499 8.967 18.57 7 16.88 7H7.12c-1.69 0-2.618 1.967-1.544 3.271l4.881 5.927a2 2 0 0 0 3.088 0l4.88-5.927Z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span class="text-sm font-medium">-{{ abs($percentage) }}% from last month</span>
                                     @endif
                                 </span>
+                                @endif
                             </span>
-                            <span class="text-sm font-medium text-gray-600">
-                                Unearned:
+                            <span class="text-sm font-medium text-gray-600">Unearned:
                                 <span class="text-red-600">{{ format_rupiah($thisMonthUnearnedRevenue) }}</span>
                             </span>
                         </div>
                         <div class="col-span-1 md:col-span-1 lg:col-span-1">
                             <span class="block text-gray-500 text-sm">Last Month</span>
                             <span class="text-md font-semibold text-gray-800 block">{{ format_rupiah($lastMonthRevenue) }}</span>
-                            <span class="text-sm font-medium text-gray-600">
-                                Unearned:
+                            <span class="text-sm font-medium text-gray-600">Unearned:
                                 <span class="text-red-600">{{ format_rupiah($lastMonthUnearnedRevenue) }}</span>
                             </span>
                         </div>
@@ -153,7 +150,7 @@
                                     <td class="px-6 py-4">{{ $sale->createdBy->name }}</th>
                                 </tr>
                                 @empty
-                                <tr><td colspan="6" class="px-6 py-4 text-center text-gray-500 italic">No sales found</td></tr>
+                                <tr><td colspan="6" class="px-6 py-4 text-center text-gray-500 bg-gray-50 italic">No sales found</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -351,7 +348,6 @@
             }
         });
     }
-
 
     // Sales Comparison Chart
     const ctxSalesChart = document.getElementById('salesChart').getContext('2d');
