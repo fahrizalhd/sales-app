@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
+use App\Enums\SaleStatus;
 use App\Enums\UserRole;
 use App\Models\Payment;
 use App\Models\Sale;
@@ -17,6 +18,10 @@ class DashboardController extends Controller
 {
     /**
      * Display the dashboard with sales statistics and recent sales data.
+     *
+     * Retrieves and calculates financial metrics for the current and previous month,
+     * including earned and unearned revenue, top-selling items, payment channel usage,
+     * and daily sales counts. Also handles role-based access control and date selection.
      *
      */
     public function index(Request $request)
@@ -96,57 +101,6 @@ class DashboardController extends Controller
             ->whereIn('status', Sale::unpaidStatuses())
             ->sum('total_amount');
 
-        $paidCount = Sale::whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])
-            ->whereIn('status', Sale::paidStatuses())
-            ->count();
-
-        $unpaidCount = Sale::whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])
-            ->whereIn('status', Sale::unpaidStatuses())
-            ->count();
-
-        $paymentChannels = Payment::where('status', PaymentStatus::SUCCESS)
-            ->whereHas('sale', function ($q) use ($selectedMonth, $selectedYear) {
-                $q->whereMonth('transaction_date', $selectedMonth)
-                    ->whereYear('transaction_date', $selectedYear);
-            })
-            ->select('method', DB::raw('COUNT(*) as total'))
-            ->groupBy('method')
-            ->pluck('total', 'method');
-
-        // $thisMonthSales = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
-        //     ->whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])
-        //     ->groupBy('day')
-        //     ->orderBy('day')
-        //     ->pluck('total', 'day')
-        //     ->toArray();
-
-        // $lastMonthSales = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
-        //     ->whereBetween('transaction_date', [$lastMonthStart, $lastMonthEnd])
-        //     ->groupBy('day')
-        //     ->orderBy('day')
-        //     ->pluck('total', 'day')
-        //     ->toArray();
-
-        $thisMonthSalesRaw = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
-            ->whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])
-            ->groupBy('day')
-            ->pluck('total', 'day');
-
-        $lastMonthSalesRaw = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
-            ->whereBetween('transaction_date', [$lastMonthStart, $lastMonthEnd])
-            ->groupBy('day')
-            ->pluck('total', 'day');
-
-        $thisMonthSales = [];
-        for ($i = 1; $i <= $thisMonthStart->daysInMonth; $i++) {
-            $thisMonthSales[$i] = $thisMonthSalesRaw[$i] ?? 0;
-        }
-
-        $lastMonthSales = [];
-        for ($i = 1; $i <= $lastMonthStart->daysInMonth; $i++) {
-            $lastMonthSales[$i] = $lastMonthSalesRaw[$i] ?? 0;
-        }
-
         $topItems = SaleItem::select('item_id', DB::raw('SUM(quantity) as total_qty'))
             ->whereHas('sale', function ($query) use ($selectedMonth, $selectedYear) {
                 $query->whereMonth('transaction_date', $selectedMonth)
@@ -157,6 +111,60 @@ class DashboardController extends Controller
             ->with('item:id,name')
             ->take(5)
             ->get();
+            
+        $thisMonthSaleStatuses = Sale::selectRaw('status, COUNT(*) as count, SUM(total_amount) as revenue')
+            ->whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])
+            ->groupBy('status')
+            ->get()
+            ->map(fn($row) => [
+                'status' => $row->status->value,
+                'count' => $row->count,
+                'revenue' => $row->revenue,
+                'label' => $row->status->label(),
+            ]);
+
+        $paymentChannels = Payment::where('status', PaymentStatus::SUCCESS)
+            ->whereHas('sale', function ($q) use ($selectedMonth, $selectedYear) {
+                $q->whereMonth('transaction_date', $selectedMonth)
+                    ->whereYear('transaction_date', $selectedYear);
+            })
+            ->select('method', DB::raw('COUNT(*) as total'))
+            ->groupBy('method')
+            ->pluck('total', 'method');
+
+        $thisMonthSales = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
+            ->whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])
+            ->groupBy('day')
+            ->orderBy('day')
+            ->pluck('total', 'day')
+            ->toArray();
+
+        $lastMonthSales = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
+            ->whereBetween('transaction_date', [$lastMonthStart, $lastMonthEnd])
+            ->groupBy('day')
+            ->orderBy('day')
+            ->pluck('total', 'day')
+            ->toArray();
+
+        // $thisMonthSalesRaw = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
+        //     ->whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])
+        //     ->groupBy('day')
+        //     ->pluck('total', 'day');
+
+        // $lastMonthSalesRaw = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
+        //     ->whereBetween('transaction_date', [$lastMonthStart, $lastMonthEnd])
+        //     ->groupBy('day')
+        //     ->pluck('total', 'day');
+
+        // $thisMonthSales = [];
+        // for ($i = 1; $i <= $thisMonthStart->daysInMonth; $i++) {
+        //     $thisMonthSales[$i] = $thisMonthSalesRaw[$i] ?? 0;
+        // }
+
+        // $lastMonthSales = [];
+        // for ($i = 1; $i <= $lastMonthStart->daysInMonth; $i++) {
+        //     $lastMonthSales[$i] = $lastMonthSalesRaw[$i] ?? 0;
+        // }
 
         $latestSales = Sale::whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])
             ->latest('transaction_date')
@@ -164,26 +172,25 @@ class DashboardController extends Controller
             ->get();
 
         return view('dashboard', [
-            'thisWeekRevenue'           => $thisWeekRevenue,
-            'thisMonthRevenue'          => $thisMonthRevenue,
-            'lastMonthRevenue'          => $lastMonthRevenue,
-            'thisWeekUnearnedRevenue'   => $thisWeekUnearnedRevenue,
-            'thisMonthUnearnedRevenue'  => $thisMonthUnearnedRevenue,
-            'lastMonthUnearnedRevenue'  => $lastMonthUnearnedRevenue,
-            'topItems'                  => $topItems,
-            'paidRevenue'               => $paidRevenue,
-            'unpaidRevenue'             => $unpaidRevenue,
-            'paidCount'                 => $paidCount,
-            'unpaidCount'               => $unpaidCount,
-            'paymentChannels'           => $paymentChannels,
-            'thisMonthSales'            => $thisMonthSales,
-            'lastMonthSales'            => $lastMonthSales,
-            'latestSales'               => $latestSales,
-            'thisWeekRange'             => $thisWeekRange,
-            'thisMonthName'             => $thisMonthName,
-            'lastMonthName'             => $lastMonthName,
-            'selectedMonth'             => $selectedMonth,
-            'selectedYear'              => $selectedYear,
+            'thisWeekRevenue'              => $thisWeekRevenue,
+            'thisMonthRevenue'             => $thisMonthRevenue,
+            'lastMonthRevenue'             => $lastMonthRevenue,
+            'thisWeekUnearnedRevenue'      => $thisWeekUnearnedRevenue,
+            'thisMonthUnearnedRevenue'     => $thisMonthUnearnedRevenue,
+            'lastMonthUnearnedRevenue'     => $lastMonthUnearnedRevenue,
+            'topItems'                     => $topItems,
+            'paidRevenue'                  => $paidRevenue,
+            'unpaidRevenue'                => $unpaidRevenue,
+            'thisMonthSaleStatuses'        => $thisMonthSaleStatuses,
+            'paymentChannels'              => $paymentChannels,
+            'thisMonthSales'               => $thisMonthSales,
+            'lastMonthSales'               => $lastMonthSales,
+            'latestSales'                  => $latestSales,
+            'thisWeekRange'                => $thisWeekRange,
+            'thisMonthName'                => $thisMonthName,
+            'lastMonthName'                => $lastMonthName,
+            'selectedMonth'                => $selectedMonth,
+            'selectedYear'                 => $selectedYear,
         ]);
     }
 }

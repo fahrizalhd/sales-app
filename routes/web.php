@@ -57,6 +57,7 @@ Route::middleware('auth')->group(function () {
     Route::get('payments/{payment}/print', [PaymentController::class, 'print'])->name('payments.print');
     Route::patch('payments/{id}/approve', [PaymentController::class, 'approve'])->name('payments.approve');
     Route::patch('payments/{id}/reject', [PaymentController::class, 'reject'])->name('payments.reject');
+    Route::patch('payments/{id}/refund', [PaymentController::class, 'refund'])->name('payments.refund');
     
     // Nested payments under sales
     Route::prefix('sales/{sale}')->name('sales.')->group(function () {

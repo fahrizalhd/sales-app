@@ -61,9 +61,11 @@ class PaymentController extends Controller
     public function create(string $id)
     {
         $sale = Sale::with('saleItems.item')->findOrFail($id);
-        $saleStatus = $sale->status;
-        if ($saleStatus === SaleStatus::CANCELLED || $saleStatus === SaleStatus::PAID) {
-            return redirect()->route('sales.index')->with('error', 'Only UNPAID or PARTIALLY PAID sales can be proceed to payment.');
+
+        if (! in_array($sale->status->value, Sale::canBeEdited(), true)) {
+            $allowed = collect(Sale::canBeEdited())->map(fn($status) => SaleStatus::from($status)->label())->join(', ');
+
+            return redirect()->route('sales.index')->with('error', "Only {$allowed} sales can proceed to payment.");
         }
 
         return view('payments.create', compact('sale'));
@@ -223,5 +225,46 @@ class PaymentController extends Controller
         });
 
         return redirect()->route('payments.show', $id)->with('error', "Payment for Invoice: #{$payment->sale->invoice_number} rejected.");
+    }
+
+    public function refund(string $id)
+    {
+        $payment = Payment::with('sale.saleItems')->findOrFail($id);
+
+        if ($payment->status !== PaymentStatus::SUCCESS) {
+            return redirect()->back()->with('warning', 'Only successful payments can be refunded.');
+        }
+
+        DB::transaction(function () use ($payment) {
+            foreach ($payment->sale->saleItems as $saleItem) {
+                $item = Item::whereKey($saleItem->item_id)->lockForUpdate()->first();
+
+                $oldQty = $item->quantity;
+                $newQty = $oldQty + $saleItem->quantity;
+
+                $item->update([
+                    'quantity' => $newQty,
+                ]);
+
+                StockHistory::create([
+                    'item_id'       => $item->id,
+                    'old_quantity'  => $oldQty,
+                    'new_quantity'  => $newQty,
+                    'reason'        => "Refund Payment for Sale #{$payment->sale->invoice_number}",
+                ]);
+            }
+
+            $payment->update([
+                'status'      => PaymentStatus::REFUNDED,
+                'refunded_at' => now(),
+            ]);
+
+            $payment->sale->update([
+                'status' => SaleStatus::CANCELLED,
+            ]);
+        });
+
+        return redirect()->route('payments.show', $id)
+            ->with('success', "Payment for Invoice: #{$payment->sale->invoice_number} refunded successfully.");
     }
 }

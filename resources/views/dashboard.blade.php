@@ -28,7 +28,7 @@
                 @if($selectedMonth != now()->month || $selectedYear != now()->year)
                 <a href="{{ route('dashboard') }}"
                     class="text-gray-700 hover:bg-gray-300 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">
-                    Reset
+                    Now
                 </a>
                 @endif
             </form>
@@ -51,7 +51,7 @@
                             @php
                             $isUp = $thisMonthRevenue > $lastMonthRevenue;
                             $percentage = $lastMonthRevenue > 0 ? round((($thisMonthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100, 1)
-                                : 100;
+                            : 100;
                             @endphp
                             <span class="text-md font-semibold flex items-center {{ $isUp ? 'text-green-600' : 'text-red-600' }}">
                                 {{ format_rupiah($thisMonthRevenue) }}
@@ -93,10 +93,10 @@
                     <canvas id="topItemsChart"></canvas>
                 </div>
 
-                <!-- Paid vs Unpaid Sales Chart -->
+                <!-- Sales Status Chart -->
                 <div class="col-span-1 md:col-span-2 lg:col-span-2 bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 max-h-96">
-                    <h4 class="text-md text-gray-700 uppercase font-semibold mb-4">Paid vs Unpaid Sales</h4>
-                    <canvas class="mx-auto" id="paidUnpaidChart"></canvas>
+                    <h4 class="text-md text-gray-700 uppercase font-semibold mb-4">Sale Status</h4>
+                    <canvas class="mx-auto" id="saleStatusChart"></canvas>
                 </div>
 
                 <!-- Payment Channel Chart -->
@@ -135,10 +135,10 @@
                                     <td class="px-6 py-4">{{ format_rupiah($sale->total_amount) }}</td>
                                     @php
                                     $colors = [
-                                        \App\Enums\SaleStatus::PAID->value => 'bg-green-100 text-green-800',
-                                        \App\Enums\SaleStatus::UNPAID->value => 'bg-yellow-100 text-yellow-800',
-                                        \App\Enums\SaleStatus::NEED_REVIEW->value => 'bg-orange-100 text-orange-800',
-                                        \App\Enums\SaleStatus::CANCELLED->value => 'bg-red-100 text-red-800',
+                                    \App\Enums\SaleStatus::PAID->value => 'bg-green-100 text-green-800',
+                                    \App\Enums\SaleStatus::UNPAID->value => 'bg-yellow-100 text-yellow-800',
+                                    \App\Enums\SaleStatus::NEED_REVIEW->value => 'bg-orange-100 text-orange-800',
+                                    \App\Enums\SaleStatus::CANCELLED->value => 'bg-red-100 text-red-800',
                                     ];
                                     @endphp
                                     <td class="px-6 py-4">
@@ -149,7 +149,9 @@
                                     <td class="px-6 py-4">{{ $sale->createdBy->name }}</th>
                                 </tr>
                                 @empty
-                                <tr><td colspan="6" class="px-6 py-4 text-center text-gray-500 bg-gray-50 italic">No sales found</td></tr>
+                                <tr>
+                                    <td colspan="6" class="px-6 py-4 text-center text-gray-500 bg-gray-50 italic">No sales found</td>
+                                </tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -162,6 +164,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    // Function to display "No data available" message
     function showNoData(containerId, message = "No data available") {
         const container = document.getElementById(containerId).parentElement;
         container.innerHTML = `<div class="flex items-center justify-center text-gray-500 italic h-full">${message}</div>`;
@@ -169,14 +172,14 @@
 
     // Top Items Chart
     const ctxTopItems = document.getElementById('topItemsChart').getContext('2d');
-    const topItemsLabels = @json($topItems->pluck('item.name'));
-    const topItemsData = @json($topItems->pluck('total_qty'));
+    const topItemsLabels = @json($topItems -> pluck('item.name'));
+    const topItemsData = @json($topItems -> pluck('total_qty'));
     if (topItemsData.length === 0) {
         showNoData('topItemsChart', 'No items sold this month');
-    }
-    else {
+    } else {
         renderTopItemsChart();
     }
+
     function renderTopItemsChart() {
         const topItemsChart = new Chart(ctxTopItems, {
             type: 'bar',
@@ -186,17 +189,17 @@
                     label: 'Quantity Sold',
                     data: topItemsData,
                     backgroundColor: [
-                        '#67C090B3', 
-                        '#E4004BB3', 
-                        '#FF9F40B3', 
-                        '#36A2EBB3', 
+                        '#67C090B3',
+                        '#E4004BB3',
+                        '#FF9F40B3',
+                        '#36A2EBB3',
                         '#9966FFB3',
                     ],
                     borderColor: [
-                        '#67C090', 
-                        '#E4004B', 
-                        '#FF9F40', 
-                        '#36A2EB', 
+                        '#67C090',
+                        '#E4004B',
+                        '#FF9F40',
+                        '#36A2EB',
                         '#9966FF',
                     ],
                     borderWidth: 2,
@@ -209,7 +212,9 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false },
+                    legend: {
+                        display: false
+                    },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
@@ -230,7 +235,9 @@
                             display: true,
                             text: 'Quantity'
                         },
-                        grid: { drawBorder: false },
+                        grid: {
+                            drawBorder: false
+                        },
                         ticks: {
                             stepSize: 1,
                         }
@@ -241,7 +248,9 @@
                             display: true,
                             text: 'Item'
                         },
-                        grid: { display: false },
+                        grid: {
+                            display: false
+                        },
                         ticks: {
                             callback: function(value, index) {
                                 const label = this.getLabelForValue(value);
@@ -254,24 +263,34 @@
         });
     }
 
-    // Paid vs Unpaid Chart
-    const ctxPaidUnpaid = document.getElementById('paidUnpaidChart').getContext('2d');
-    if ({{ $paidRevenue }} === 0 && {{ $unpaidRevenue }} === 0) {
-        showNoData('paidUnpaidChart', 'No sales this month');
+    // Sale Status Chart
+    const ctxSaleStatus = document.getElementById('saleStatusChart').getContext('2d');
+    const statusData = @json($thisMonthSaleStatuses);
+    const statusColors = {
+        UNPAID: '#FF9F40',       
+        NEED_REVIEW: '#C27803',  
+        PAID: '#67C090',         
+        CANCELLED: '#E4004B',    
+    };
+    const saleStatusLabels = statusData.map(s => `${s.label} (${s.count} invoice)`);
+    const saleStatusRevenues = statusData.map(s => s.revenue);
+    const saleStatusCount = statusData.map(s => s.count);
+    const saleStatusColors = statusData.map(s => statusColors[s.status] || '#CCCCCC');
+
+    if (saleStatusRevenues.length === 0 || saleStatusRevenues.every(r => r === 0)) {
+        showNoData('saleStatusChart', 'No sales this month');
     } else {
-        renderPaidUnpaidChart();
+        renderSaleStatusChart();
     }
-    function renderPaidUnpaidChart() {
-        const paidUnpaidChart = new Chart(ctxPaidUnpaid, {
+
+    function renderSaleStatusChart() {
+        const saleStatusChart =new Chart(ctxSaleStatus, {
             type: 'doughnut',
             data: {
-                labels: [
-                    'Paid ({{ $paidCount }} invoice)',
-                    'Unpaid ({{ $unpaidCount }} invoice)'
-                ],
+                labels: saleStatusLabels,
                 datasets: [{
-                    data: [{{ $paidRevenue }}, {{ $unpaidRevenue }}],
-                    backgroundColor: ['#67C090', '#E4004B'],
+                    data: saleStatusRevenues,
+                    backgroundColor: saleStatusColors,
                     borderWidth: 0,
                 }]
             },
@@ -281,9 +300,7 @@
                 plugins: {
                     legend: {
                         position: 'bottom',
-                        labels: {
-                            usePointStyle: true, 
-                        },
+                        labels: { usePointStyle: true },
                     },
                     tooltip: {
                         callbacks: {
@@ -303,14 +320,14 @@
 
     // Payment Channel Chart
     const ctxPayment = document.getElementById('paymentChannelChart').getContext('2d');
-    const paymentLabels = @json(array_keys($paymentChannels->toArray()));
-    const paymentData = @json(array_values($paymentChannels->toArray()));
+    const paymentLabels = @json(array_keys($paymentChannels -> toArray()));
+    const paymentData = @json(array_values($paymentChannels -> toArray()));
     if (paymentData.length === 0) {
         showNoData('paymentChannelChart', 'No payments this month');
-    }
-    else {
+    } else {
         renderPaymentChannelChart();
     }
+
     function renderPaymentChannelChart() {
         const paymentChannelChart = new Chart(ctxPayment, {
             type: 'pie',
@@ -331,7 +348,9 @@
             options: {
                 responsive: true,
                 plugins: {
-                    legend: { position: 'bottom' },
+                    legend: {
+                        position: 'bottom'
+                    },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
@@ -351,13 +370,13 @@
     // Sales Comparison Chart
     const ctxSalesChart = document.getElementById('salesChart').getContext('2d');
     const thisMonthData = [
-        @foreach($thisMonthSales as $day => $total)
-            { x: {{ $day }}, y: {{ $total }} },
+        @foreach($thisMonthSales as $day => $total) {
+            x: {{$day}}, y: {{$total}}},
         @endforeach
     ];
     const lastMonthData = [
-        @foreach($lastMonthSales as $day => $total)
-            { x: {{ $day }}, y: {{ $total }} },
+        @foreach($lastMonthSales as $day => $total) {
+            x: {{$day}}, y: {{$total}}},
         @endforeach
     ];
     const thisMonthLabel = "{{ $thisMonthName }}";
@@ -367,12 +386,12 @@
     } else {
         renderSalesComparisonChart();
     }
+
     function renderSalesComparisonChart() {
         const salesChart = new Chart(ctxSalesChart, {
             type: 'line',
             data: {
-                datasets: [
-                    {
+                datasets: [{
                         label: 'This Month',
                         data: thisMonthData,
                         fill: false,
@@ -440,7 +459,9 @@
                             display: true,
                             text: 'Day',
                         },
-                        grid: { display: false }
+                        grid: {
+                            display: false
+                        }
                     },
                     y: {
                         beginAtZero: true,
@@ -452,7 +473,9 @@
                         ticks: {
                             stepSize: 1,
                         },
-                        grid: { display: true }
+                        grid: {
+                            display: true
+                        }
                     }
                 }
             }

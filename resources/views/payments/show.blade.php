@@ -76,10 +76,10 @@
                         @php
                         $status = \App\Enums\PaymentStatus::tryFrom($payment->status->value);
                         $badgeClasses = match($status) {
-                            \App\Enums\PaymentStatus::SUCCESS => 'bg-green-100 text-green-800',
-                            \App\Enums\PaymentStatus::PENDING => 'bg-yellow-100 text-yellow-800',
-                            \App\Enums\PaymentStatus::REJECTED => 'bg-red-100 text-red-800',
-                            default => 'bg-gray-100 text-gray-800',
+                        \App\Enums\PaymentStatus::SUCCESS => 'bg-green-100 text-green-800',
+                        \App\Enums\PaymentStatus::PENDING => 'bg-yellow-100 text-yellow-800',
+                        \App\Enums\PaymentStatus::REJECTED => 'bg-red-100 text-red-800',
+                        default => 'bg-gray-100 text-gray-800',
                         };
                         @endphp
                         <p>
@@ -98,7 +98,7 @@
                                 @csrf
                                 @method('PATCH')
                                 <button type="submit"
-                                    class="py-2.5 px-5 text-sm font-medium text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 rounded-lg">
+                                    class="py-2.5 px-5 text-sm font-medium text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 rounded-lg">
                                     Approve
                                 </button>
                             </form>
@@ -110,6 +110,15 @@
                                     Reject
                                 </button>
                             </form>
+                            @elseif($payment->status === \App\Enums\PaymentStatus::SUCCESS)
+                            <form action="{{ route('payments.refund', $payment->id) }}" method="POST" onsubmit="return confirm('Refund this payment?')">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit"
+                                    class="py-2.5 px-5 text-sm font-medium text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 rounded-lg">
+                                    Refund
+                                </button>
+                            </form>
                             @endif
                         </div>
                         <div class="flex justify-end gap-2">
@@ -119,8 +128,11 @@
                             </a>
                             @if ($payment->status === \App\Enums\PaymentStatus::SUCCESS)
                             <a href="{{ route('payments.print', $payment) }}" target="_blank"
-                                class="inline-flex items-center gap-2 text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5">
-                                Print Receipt
+                                class="inline-flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5">
+                                <svg class="w-[20px] h-[20px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                    <path fill-rule="evenodd" d="M8 3a2 2 0 0 0-2 2v3h12V5a2 2 0 0 0-2-2H8Zm-3 7a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h1v-4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v4h1a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H5Zm4 11a1 1 0 0 1-1-1v-4h8v4a1 1 0 0 1-1 1H9Z" clip-rule="evenodd" />
+                                </svg>
+                                Receipt
                             </a>
                             @endif
                         </div>
