@@ -37,9 +37,9 @@
                     <tbody>
                         @forelse($categories as $category)
                         <tr data-href="{{ route('categories.edit', $category) }}" class="bg-white border-b border-gray-200 hover:bg-gray-50 cursor-pointer">
-                            <td class="px-6 py-2">{{ $category->name }}</th>
-                            <td class="px-6 py-2">{{ $category->description }}</td>
-                            <td class="px-6 py-2">
+                            <td class="px-6 py-4">{{ $category->name }}</th>
+                            <td class="px-6 py-4">{{ $category->description }}</td>
+                            <td class="px-6 py-4">
                                 <form action="{{ route('categories.destroy', $category) }}" method="POST" class="inline ml-2" onsubmit="return confirm('Delete category?')">
                                     @csrf @method('DELETE')
                                     <button class="inline-flex items-center justify-center p-2 text-red-500 rounded-full hover:bg-red-100 hover:text-red-600 transition-colors duration-200">

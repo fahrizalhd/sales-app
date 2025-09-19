@@ -51,10 +51,10 @@
                             @php
                             $status = \App\Enums\PaymentStatus::tryFrom($payment->status->value);
                             $badgeClasses = match($status) {
-                            \App\Enums\PaymentStatus::SUCCESS => 'bg-green-100 text-green-800',
-                            \App\Enums\PaymentStatus::PENDING => 'bg-yellow-100 text-yellow-800',
-                            \App\Enums\PaymentStatus::REJECTED => 'bg-red-100 text-red-800',
-                            default => 'bg-gray-100 text-gray-800',
+                                \App\Enums\PaymentStatus::SUCCESS => 'bg-green-100 text-green-800',
+                                \App\Enums\PaymentStatus::PENDING => 'bg-yellow-100 text-yellow-800',
+                                \App\Enums\PaymentStatus::REJECTED => 'bg-red-100 text-red-800',
+                                default => 'bg-gray-100 text-gray-800',
                             };
                             @endphp
                             <td class="px-6 py-4">

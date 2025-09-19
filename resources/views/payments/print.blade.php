@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Receipt</title>
@@ -11,20 +12,35 @@
             margin: 0 auto;
             color: #000;
         }
-        .text-center { text-align: center; }
-        .bold { font-weight: bold; }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
         .line {
             border-top: 1px dashed #000;
             margin: 4px 0;
         }
+
         .flex-between {
             display: flex;
             justify-content: space-between;
         }
-        .mt-2 { margin-top: 8px; }
-        .mt-4 { margin-top: 16px; }
+
+        .mt-2 {
+            margin-top: 8px;
+        }
+
+        .mt-4 {
+            margin-top: 16px;
+        }
     </style>
 </head>
+
 <body onload="window.print()">
 
     <div class="text-center">
@@ -40,21 +56,37 @@
     <div class="line"></div>
 
     <div>
-        <div>Invoice : {{ $payment->sale->invoice_number }}</div>
-        <div>Date    : {{ format_date_with_time($payment->created_at) }}</div>
-        <div>Customer: {{ $payment->sale->customer_name }}</div>
+        <table>
+            <tbody>
+                <tr>
+                    <td>Invoice</td>
+                    <td>:</td>
+                    <td>{{ $payment->sale->invoice_number }}</td>
+                </tr>
+                <tr>
+                    <td>Date</td>
+                    <td>:</td>
+                    <td>{{ format_date_with_time($payment->created_at) }}</td>
+                </tr>
+                <tr>
+                    <td>Customer</td>
+                    <td>:</td>
+                    <td>{{ $payment->sale->customer_name }}</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
     <div class="line"></div>
 
     @foreach($payment->sale->saleItems as $saleItem)
-        <div>
-            <div>{{ $saleItem->item->name }}</div>
-            <div class="flex-between">
-                <span>{{ number_format($saleItem->price, 0, ',', '.') }} x{{ $saleItem->quantity }}</span>
-                <span>{{ number_format($saleItem->price * $saleItem->quantity, 0, ',', '.') }}</span>
-            </div>
+    <div>
+        <div>{{ $saleItem->item->name }}</div>
+        <div class="flex-between">
+            <span>{{ number_format($saleItem->price, 0, ',', '.') }} x{{ $saleItem->quantity }}</span>
+            <span>{{ number_format($saleItem->price * $saleItem->quantity, 0, ',', '.') }}</span>
         </div>
+    </div>
     @endforeach
 
     <div class="line"></div>
@@ -65,7 +97,7 @@
     </div>
 
     <div class="flex-between mt-2">
-        <span>Method</span>
+        <span>Channel</span>
         <span>{{ $payment->method->label() }}</span>
     </div>
 
@@ -78,4 +110,5 @@
     </div>
 
 </body>
+
 </html>

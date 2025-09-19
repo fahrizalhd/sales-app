@@ -101,19 +101,19 @@ class Sale extends Model
     }
 
     /**
-     * Get the list of statuses considered as "paid-like".
+     * Get the list of statuses considered as "paid".
      */
     public static function paidStatuses(): array
     {
         return [
             SaleStatus::PAID->value,
-            SaleStatus::PARTIALLY_PAID->value,
+            // SaleStatus::PARTIALLY_PAID->value,
             SaleStatus::NEED_REVIEW->value,
         ];
     }
 
     /**
-     * Get the list of statuses considered as "unpaid-like".
+     * Get the list of statuses considered as "unpaid".
      */
     public static function unpaidStatuses(): array
     {
@@ -124,19 +124,23 @@ class Sale extends Model
     }
 
     /**
-     * Check if the current sale is considered as "paid-like".
+     * Get the list of statuses can be deleted.
      */
-    public function isPaidLike(): bool
+    public static function canBeEdited(): array
     {
-        return in_array($this->status, self::paidStatuses());
+        return [
+            SaleStatus::UNPAID->value,
+        ];
     }
 
     /**
-     * Check if the current sale is considered as "unpaid-like".
+     * Get the list of statuses can be deleted.
      */
-    public function isUnpaidLike(): bool
+    public static function canBeDeleted(): array
     {
-        return in_array($this->status, self::unpaidStatuses());
+        return [
+            SaleStatus::UNPAID->value,
+        ];
     }
 
     /**

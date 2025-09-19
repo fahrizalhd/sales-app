@@ -17,9 +17,25 @@
                         </p>
                     </div>
                     <div class="mb-2">
-                        <p><span class="font-semibold">Invoice:</span> {{ $payment->sale->invoice_number }}</p>
-                        <p><span class="font-semibold">Date:</span> {{ format_date_with_time($payment->created_at) }}</p>
-                        <p><span class="font-semibold">Customer:</span> {{ $payment->sale->customer_name }}</p>
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td class="font-semibold">Invoice</td>
+                                    <td>:</td>
+                                    <td>{{ $payment->sale->invoice_number }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-semibold">Date</td>
+                                    <td>:</td>
+                                    <td>{{ format_date_with_time($payment->created_at) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-semibold">Customer</td>
+                                    <td>:</td>
+                                    <td>{{ $payment->sale->customer_name }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                     <div class="border-t border-b border-dashed py-2 my-2 grid gap-4">
                         @foreach($payment->sale->saleItems as $saleItem)
@@ -37,7 +53,8 @@
                         <span>{{ number_format($payment->sale->total_amount, 0, ',', '.') }}</span>
                     </div>
                     <div class="mt-2 flex justify-between text-xs">
-                        <span>Method: {{ $payment->method }}</span>
+                        <span>Channel</span>
+                        <span>{{ $payment->method->label() }}</span>
                     </div>
                     <div class="mt-6 text-center text-xs text-gray-700 border-t border-dashed pt-2">
                         <p>Thank you for shopping with us.</p>
@@ -56,7 +73,21 @@
                         <h3 class="text-md font-semibold mb-2">Payment Information</h3>
                         <p><span class="font-medium">Method:</span> {{ $payment->method->label() }}</p>
                         <p><span class="font-medium">Amount:</span> Rp {{ number_format($payment->amount, 0, ',', '.') }}</p>
-                        <p><span class="font-medium">Status:</span> {{ $payment->status->label() }}</p>
+                        @php
+                        $status = \App\Enums\PaymentStatus::tryFrom($payment->status->value);
+                        $badgeClasses = match($status) {
+                            \App\Enums\PaymentStatus::SUCCESS => 'bg-green-100 text-green-800',
+                            \App\Enums\PaymentStatus::PENDING => 'bg-yellow-100 text-yellow-800',
+                            \App\Enums\PaymentStatus::REJECTED => 'bg-red-100 text-red-800',
+                            default => 'bg-gray-100 text-gray-800',
+                        };
+                        @endphp
+                        <p>
+                            <span class="font-medium">Status:</span>
+                            <span class="{{ $badgeClasses }} text-xs font-medium px-2.5 py-1 rounded-full">
+                                {{ $status?->label() ?? 'Unknown' }}
+                            </span>
+                        </p>
                         <p><span class="font-medium">Created at:</span> {{ format_date_with_time($payment->created_at) }}</p>
                         <p><span class="font-medium">Submitted by:</span> {{ $payment->createdBy->name }}</p>
                     </div>
@@ -86,10 +117,12 @@
                                 class="py-2.5 px-5 text-sm font-medium text-gray-900 bg-none rounded-lg hover:bg-gray-100 hover:text-gray-700">
                                 Back
                             </a>
+                            @if ($payment->status === \App\Enums\PaymentStatus::SUCCESS)
                             <a href="{{ route('payments.print', $payment) }}" target="_blank"
                                 class="inline-flex items-center gap-2 text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5">
                                 Print Receipt
                             </a>
+                            @endif
                         </div>
                     </div>
                 </div>

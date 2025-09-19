@@ -135,11 +135,10 @@
                                     <td class="px-6 py-4">{{ format_rupiah($sale->total_amount) }}</td>
                                     @php
                                     $colors = [
-                                    \App\Enums\SaleStatus::PAID->value => 'bg-green-100 text-green-800',
-                                    \App\Enums\SaleStatus::PARTIALLY_PAID->value => 'bg-blue-100 text-blue-800',
-                                    \App\Enums\SaleStatus::UNPAID->value => 'bg-yellow-100 text-yellow-800',
-                                    \App\Enums\SaleStatus::NEED_REVIEW->value => 'bg-orange-100 text-orange-800',
-                                    \App\Enums\SaleStatus::CANCELLED->value => 'bg-red-100 text-red-800',
+                                        \App\Enums\SaleStatus::PAID->value => 'bg-green-100 text-green-800',
+                                        \App\Enums\SaleStatus::UNPAID->value => 'bg-yellow-100 text-yellow-800',
+                                        \App\Enums\SaleStatus::NEED_REVIEW->value => 'bg-orange-100 text-orange-800',
+                                        \App\Enums\SaleStatus::CANCELLED->value => 'bg-red-100 text-red-800',
                                     ];
                                     @endphp
                                     <td class="px-6 py-4">

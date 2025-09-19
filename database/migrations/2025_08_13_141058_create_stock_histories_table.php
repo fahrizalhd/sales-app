@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('stock_histories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('item_id')->constrained()->onDelete('cascade');
-            $table->integer('change');
             $table->integer('old_quantity');
             $table->integer('new_quantity');
             $table->string('reason')->nullable();

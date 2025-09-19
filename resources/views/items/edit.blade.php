@@ -153,8 +153,12 @@
                                             {{ $history->createdBy?->name }} ({{ $history->createdBy?->role }})
                                         </p>
                                     </div>
-                                    <div class="inline-flex items-center text-base font-semibold text-gray-900">
-                                        {{ $history->change }}
+                                    @php
+                                    $stock_changes = $history->new_quantity - $history->old_quantity;
+                                    $class = $stock_changes > 0 ? 'text-green-600' : 'text-red-600';
+                                    @endphp
+                                    <div class="inline-flex items-center text-base font-semibold {{ $class }}">
+                                        {{ $stock_changes > 0 ? '+' : '' }}{{ $stock_changes }}
                                     </div>
                                 </div>
                             </li>

@@ -6,7 +6,6 @@ use App\Enums\SaleStatus;
 use App\Models\Item;
 use App\Models\Sale;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 use Illuminate\Support\Facades\DB;
@@ -73,17 +72,13 @@ class SaleController extends Controller
             'saleItems.*.qty'  => 'required|integer|min:1',
         ]);
 
-        $loggedUser = Auth::user();
-
-        DB::transaction(function () use ($request, $loggedUser) {
+        DB::transaction(function () use ($request) {
             $sale = Sale::create([
                 'invoice_number'    => $request->invoice_number,
                 'customer_name'     => $request->customer_name,
                 'total_amount'      => 0,
                 'status'            => SaleStatus::UNPAID,
                 'transaction_date'  => now(),
-                'created_by'        => $loggedUser->id,
-                'updated_by'        => $loggedUser->id,
             ]);
 
             $total = 0;
@@ -102,8 +97,6 @@ class SaleController extends Controller
                     'quantity'      => $data['qty'],
                     'price'         => $item->price,
                     'subtotal'      => $subtotal,
-                    'created_by'    => $loggedUser->id,
-                    'updated_by'    => $loggedUser->id,
                 ]);
 
                 $total += $subtotal;
@@ -122,15 +115,16 @@ class SaleController extends Controller
     public function edit(string $id)
     {
         $sale = Sale::with(['saleItems.item'])->findOrFail($id);
-        if (!in_array($sale->status, [SaleStatus::UNPAID, SaleStatus::PARTIALLY_PAID])) {
-            return redirect()->route('sales.index')->with('error', 'Only UNPAID or PARTIALLY PAID sales can be edited.');
-        }
+        if (! in_array($sale->status->value, Sale::canBeEdited(), true)) {
+            $allowed = collect(Sale::canBeEdited())->map(fn($status) => SaleStatus::from($status)->label())->join(', ');
 
+            return redirect()->route('sales.index')->with('error', "Only {$allowed} sales can be edited.");
+        }
+        
         $items = Item::where('is_active', true)->get();
 
         return view('sales.edit', compact('sale', 'items'));
     }
-
 
     /**
      * Update the specified sale in storage.
@@ -145,14 +139,11 @@ class SaleController extends Controller
             'saleItems.*.qty'  => 'required|integer|min:1',
         ]);
 
-        $loggedUser = Auth::user();
-
-        $sale = DB::transaction(function () use ($request, $id, $loggedUser) {
+        $sale = DB::transaction(function () use ($request, $id) {
             $sale = Sale::with('saleItems')->findOrFail($id);
 
             $sale->update([
                 'customer_name'  => $request->customer_name,
-                'updated_by'     => $loggedUser->id,
             ]);
 
             $sale->saleItems()->delete();
@@ -173,8 +164,6 @@ class SaleController extends Controller
                     'quantity'   => $data['qty'],
                     'price'      => $item->price,
                     'subtotal'   => $subtotal,
-                    'created_by' => $loggedUser->id,
-                    'updated_by' => $loggedUser->id,
                 ]);
 
                 $total += $subtotal;
@@ -185,7 +174,7 @@ class SaleController extends Controller
             return $sale;
         });
 
-        return redirect()->route('sales.index')->with('success', "Sale: {$sale->invoice_number} updated successfully.");
+        return redirect()->route('sales.index')->with('success', "Sale: #{$sale->invoice_number} updated successfully.");
     }
 
     /**
@@ -194,10 +183,14 @@ class SaleController extends Controller
     public function destroy(string $id)
     {
         $sale = Sale::findOrFail($id);
+
+        if (! in_array($sale->status->value, Sale::canBeDeleted(), true)) {
+            return redirect()->route('sales.index')
+                ->with('error', "Sale: #{$sale->invoice_number} cannot be deleted because its status is {$sale->status->label()}.");
+        }
+
         $sale->delete();
 
-        return redirect()
-            ->route('sales.index')
-            ->with('success', "{$sale->invoice_number} deleted successfully.");
+        return redirect()->route('sales.index')->with('success', "Sale: #{$sale->invoice_number} deleted successfully.");
     }
 }

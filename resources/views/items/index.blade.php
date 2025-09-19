@@ -88,11 +88,11 @@
                     <tbody>
                         @forelse ($items as $item)
                         <tr data-href="{{ route("items.edit", $item) }}" class="bg-white border-b border-gray-200 hover:bg-gray-50 cursor-pointer">
-                            <td class="px-6 py-2 text-left font-bold">{{ $item->sku }}</td>
-                            <td class="px-6 py-2">{{ $item->name }}</td>
-                            <td class="px-6 py-2">{{ $item->category->name }}</td>
-                            <td class="px-6 py-2">{{ format_rupiah($item->price) }}</td>
-                            <td class="px-6 py-2">
+                            <td class="px-6 py-4 text-left font-bold">{{ $item->sku }}</td>
+                            <td class="px-6 py-4">{{ $item->name }}</td>
+                            <td class="px-6 py-4">{{ $item->category->name }}</td>
+                            <td class="px-6 py-4">{{ format_rupiah($item->price) }}</td>
+                            <td class="px-6 py-4">
                                 @php
                                 $qty = $item->quantity;
                                 if ($qty === 0) {
@@ -130,14 +130,14 @@
                                 </span>
                                 @endif
                             </td>
-                            <td class="px-6 py-2">
+                            <td class="px-6 py-4">
                                 @if ($item->is_active)
                                 <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-1 rounded-full">Active</span>
                                 @else
                                 <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-1 rounded-full">Inactive</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-2">
+                            <td class="px-6 py-4">
                                 <span class="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center gap-2 px-2 py-1 rounded-sm">
                                     <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                                         <path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm11-4a1 1 0 1 0-2 0v4a1 1 0 0 0 .293.707l3 3a1 1 0 0 0 1.414-1.414L13 11.586V8Z" clip-rule="evenodd" />
@@ -145,7 +145,7 @@
                                     <span>{{ $item->updated_at->diffForHumans() }}</span>
                                 </span>
                             </td>
-                            <td class="px-6 py-2">
+                            <td class="px-6 py-4">
                                 <form action="{{ route("items.destroy", $item) }}" method="POST" class="inline ml-2"
                                     onsubmit="return confirm('Delete item?')">
                                     @csrf

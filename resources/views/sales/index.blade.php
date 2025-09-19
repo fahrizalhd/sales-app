@@ -58,7 +58,7 @@
                     <tbody>
                         @forelse($sales as $sale)
                         <tr data-href="{{ route('sales.edit', $sale) }}" class="bg-white border-b border-gray-200 hover:bg-gray-50 cursor-pointer">
-                            <td class="px-6 py-2 font-semibold">
+                            <td class="px-6 py-4 font-semibold">
                                 <div class="flex items-center gap-2">
                                     <span>{{ $sale->invoice_number }}</span>
                                     <button type="button" class="copy-btn text-gray-500 hover:text-gray-700" data-clipboard-text="{{ $sale->invoice_number }}">
@@ -68,34 +68,43 @@
                                     </button>
                                 </div>
                             </td>
-                            <td class="px-6 py-2">{{ $sale->customer_name }}</td>
-                            <td class="px-6 py-2 font-semibold">{{ format_date_with_time($sale->transaction_date) }}</td>
-                            <td class="px-6 py-2">{{ format_rupiah($sale->total_amount) }}</td>
+                            <td class="px-6 py-4">{{ $sale->customer_name }}</td>
+                            <td class="px-6 py-4 font-semibold">{{ format_date_with_time($sale->transaction_date) }}</td>
+                            <td class="px-6 py-4">{{ format_rupiah($sale->total_amount) }}</td>
                             @php
                             $colors = [
-                            \App\Enums\SaleStatus::PAID->value => 'bg-green-100 text-green-800',
-                            \App\Enums\SaleStatus::PARTIALLY_PAID->value => 'bg-blue-100 text-blue-800',
-                            \App\Enums\SaleStatus::UNPAID->value => 'bg-yellow-100 text-yellow-800',
-                            \App\Enums\SaleStatus::NEED_REVIEW->value => 'bg-orange-100 text-orange-800',
-                            \App\Enums\SaleStatus::CANCELLED->value => 'bg-red-100 text-red-800',
+                                \App\Enums\SaleStatus::PAID->value => 'bg-green-100 text-green-800',
+                                \App\Enums\SaleStatus::UNPAID->value => 'bg-yellow-100 text-yellow-800',
+                                \App\Enums\SaleStatus::NEED_REVIEW->value => 'bg-orange-100 text-orange-800',
+                                \App\Enums\SaleStatus::CANCELLED->value => 'bg-red-100 text-red-800',
                             ];
                             @endphp
-                            <td class="px-6 py-2">
+                            <td class="px-6 py-4">
                                 <span class="{{ $colors[$sale->status->value] }} text-xs font-medium px-2.5 py-1 rounded-full">
                                     {{ $sale->status->label() }}
                                 </span>
                             </td>
-                            <td class="px-6 py-2">{{ $sale->createdBy->name }}</th>
-                            <td class="px-6 py-2">
+                            <td class="px-6 py-4">{{ $sale->createdBy->name }}</th>
+                            <td class="px-6 py-4">
                                 <div class="flex justify-center items-center gap-2">
-                                    @if ($sale->status === \App\Enums\SaleStatus::UNPAID || $sale->status === \App\Enums\SaleStatus::PARTIALLY_PAID)
-                                    <a href="{{ route('sales.payments.create', $sale->id) }}"
-                                        class="inline-flex items-center justify-center p-2 text-blue-500 rounded-full hover:bg-blue-100 hover:text-blue-600 transition-colors duration-200">
-                                        Pay
+                                    @switch($sale->status)
+                                        @case(\App\Enums\SaleStatus::UNPAID)
+                                        <a href="{{ route('sales.payments.create', $sale->id) }}"
+                                            class="inline-flex items-center justify-center p-2 text-blue-500 rounded-full hover:bg-blue-100 hover:text-blue-600 transition-colors duration-200">
+                                            Pay
+                                        </a>
+                                    @break
+
+                                    @case(\App\Enums\SaleStatus::NEED_REVIEW)
+                                    <a href="{{ route('payments.show', $sale->payments->last()->id ?? '') }}"
+                                        class="inline-flex items-center justify-center p-2 text-orange-800 rounded-full hover:bg-orange-100 hover:text-orange-600 transition-colors duration-200">
+                                        Review
                                     </a>
-                                    @endif
-                                    <form action="{{ route('sales.destroy', $sale) }}" method="POST"
-                                        onsubmit="return confirm('Delete sale?')">
+                                    @break
+                                    @endswitch
+
+                                    @if (in_array($sale->status->value, \App\Models\Sale::canBeDeleted(), true))
+                                    <form action="{{ route('sales.destroy', $sale) }}" method="POST" onsubmit="return confirm('Delete sale?')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit"
@@ -103,6 +112,7 @@
                                             Delete
                                         </button>
                                     </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

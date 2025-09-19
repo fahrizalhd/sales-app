@@ -48,19 +48,18 @@
                                                     class="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 item-select">
                                                     <option value="">-- Select Item --</option>
                                                     @foreach ($items as $item)
-                                                    <option value="{{ $item->id }}" 
-                                                            data-price="{{ $item->price }}" 
-                                                            data-stock="{{ $item->quantity }}"
-                                                            {{ (isset($oldItem['id']) && $oldItem['id'] == $item->id) ? 'selected' : '' }}>
+                                                    <option value="{{ $item->id }}" data-price="{{ $item->price }}"
+                                                        data-stock="{{ $item->quantity }}"
+                                                        {{ (isset($oldItem['id']) && $oldItem['id'] == $item->id) ? 'selected' : '' }}>
                                                         {{ $item->name }} (Left: {{ $item->quantity }})
                                                     </option>
                                                     @endforeach
                                                 </select>
                                             </td>
                                             <td class="px-4 py-2">
-                                                <input type="number" 
+                                                <input type="number"
                                                     name="saleItems[{{ $index }}][qty]"
-                                                    value="{{ $oldItem['qty'] ?? 1 }}" 
+                                                    value="{{ $oldItem['qty'] ?? 1 }}"
                                                     min="1"
                                                     class="w-16 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 item-qty">
                                             </td>
@@ -168,7 +167,7 @@
                     <option value="">-- Select Item --</option>
                     @foreach ($items as $item)
                     <option value="{{ $item->id }}" data-price="{{ $item->price }}">
-                        {{ $item->name }} ({{ $item->quantity }})
+                        {{ $item->name }} (Left: {{ $item->quantity }})
                     </option>
                     @endforeach
                 </select>
@@ -209,7 +208,7 @@
 
     updateTotal();
 
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
         function updateQtyMax(selectEl) {
             const selectedOption = selectEl.options[selectEl.selectedIndex];
             const stock = selectedOption.getAttribute("data-stock") || 1;
@@ -221,10 +220,10 @@
             }
         }
 
-        document.querySelectorAll(".item-select").forEach(function (selectEl) {
+        document.querySelectorAll(".item-select").forEach(function(selectEl) {
             updateQtyMax(selectEl);
 
-            selectEl.addEventListener("change", function () {
+            selectEl.addEventListener("change", function() {
                 updateQtyMax(this);
             });
         });
