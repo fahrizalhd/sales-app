@@ -49,9 +49,9 @@
                             <th scope="col" class="px-6 py-3 text-left">Invoice Number</th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="customer_name" label="Customer"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="transaction_date" label="Date"></x-sort-link></th>
+                            <th scope="col" class="px-6 py-3"><x-sort-link column="created_by" label="Handler"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="total_amount" label="Amount"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="status" label="Status"></x-sort-link></th>
-                            <th scope="col" class="px-6 py-3"><x-sort-link column="created_by" label="Handler"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"></th>
                         </tr>
                     </thead>
@@ -70,6 +70,7 @@
                             </td>
                             <td class="px-6 py-4">{{ $sale->customer_name }}</td>
                             <td class="px-6 py-4 font-semibold">{{ format_date_with_time($sale->transaction_date) }}</td>
+                            <td class="px-6 py-4">{{ $sale->createdBy->name }}</th>
                             <td class="px-6 py-4">{{ format_rupiah($sale->total_amount) }}</td>
                             @php
                             $colors = [
@@ -84,7 +85,6 @@
                                     {{ $sale->status->label() }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4">{{ $sale->createdBy->name }}</th>
                             <td class="px-6 py-4">
                                 <div class="flex justify-center items-center gap-2">
                                     @switch($sale->status)

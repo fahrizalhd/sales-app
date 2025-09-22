@@ -38,10 +38,10 @@ class AuthenticatedSessionController extends Controller
         }
 
         if ($user->role === UserRole::USER) {
-            return redirect()->intended(route('sales.index', absolute: false));        
+            return redirect()->route('sales.index');        
         }
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->route('dashboard');
     }
 
     /**
