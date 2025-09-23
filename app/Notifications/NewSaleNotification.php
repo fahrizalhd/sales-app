@@ -57,8 +57,8 @@ class NewSaleNotification extends Notification
     public function toDatabase(object $notifiable): array
     {
         return [
-            'message'           => "New sale: {$this->sale->invoice_number} for {$this->sale->customer_name}",
-            'sale_id'           => $this->sale->id,
+            'message'   => "New sale: {$this->sale->invoice_number} for {$this->sale->customer_name}",
+            'sale_id'   => $this->sale->id,
         ];
     }
 }

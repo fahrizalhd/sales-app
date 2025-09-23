@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SaleController;
 use Illuminate\Support\Facades\Auth;
@@ -64,6 +65,13 @@ Route::middleware('auth')->group(function () {
         Route::get('payments/create', [PaymentController::class, 'create'])->name('payments.create');
         Route::post('payments', [PaymentController::class, 'store'])->name('payments.store');
     });
+
+    //Notification routes
+    Route::post('notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])
+        ->name('notifications.read');
+
+    Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllRead'])
+        ->name('notifications.markAllRead');
 });
 
 require __DIR__ . '/auth.php';
