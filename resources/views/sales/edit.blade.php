@@ -47,13 +47,13 @@
                                     </thead>
                                     <tbody id="items-table">
                                         @php
-                                        $oldItems = old('items', $sale->saleItems->map(function($si) {
-                                            return [
-                                                'id' => $si->item_id,
-                                                'qty' => $si->quantity,
-                                                'price' => $si->price,
+                                            $oldItems = old('items', $sale->saleItems->map(function($si) {
+                                                return [
+                                                    'id' => $si->item_id,
+                                                    'qty' => $si->quantity,
+                                                    'price' => $si->price,
                                                 ];
-                                            })->toArray());
+                                        })->toArray());
                                         @endphp
                                         @foreach ($oldItems as $index => $oldItem)
                                         <tr>
@@ -97,7 +97,7 @@
                                 </div>
                                 <button type="button" id="add-row"
                                     class="mt-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 text-white rounded-lg text-sm flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                    <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                         fill="none" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5" />
                                     </svg>
@@ -111,12 +111,22 @@
                     </div>
                     <div class="flex items-end justify-end gap-2 mt-4">
                         <a href="{{ route('sales.index') }}"
-                            class="py-2.5 px-5  text-sm font-medium text-gray-900 focus:outline-none bg-none rounded-lg hover:bg-gray-100 hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-100">
+                            class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-none rounded-lg hover:bg-gray-100 hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-100">
+                            Back
+                        </a>
+                        @if($sale->canBeCancelled())                    
+                        <button type="submit" class="inline-flex items-center gap-2 text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none"
+                            form="cancel-sale-{{ $sale->id }}" onclick="return confirm('Cancel this sale?')">
+                            <svg class="w-[20px] h-[20px]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
+                            </svg>
                             Cancel
                         </a>
+                        @endif
+
                         <button type="submit"
                             class="inline-flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">
-                            <svg class="w-[20px] h-[20px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                            <svg class="w-[20px] h-[20px]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                 fill="currentColor" viewBox="0 0 24 24">
                                 <path fill-rule="evenodd" d="M5 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7.414A2 2 0 0 0 20.414 6L18 3.586A2 2 0 0 0 16.586 3H5Zm10 11a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM8 7V5h8v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1Z"
                                     clip-rule="evenodd" />
@@ -125,17 +135,23 @@
                         </button>
                     </div>
                 </form>
+                @if($sale->canBeCancelled())
+                    <form id="cancel-sale-{{ $sale->id }}" action="{{ route('sales.cancel', $sale->id) }}"  method="POST" class="hidden">
+                        @csrf
+                        @method('PATCH')
+                    </form>
+                @endif
             </div>
         </div>
     </div>
 </x-app-layout>
 
 <script>
-    let rowIndex = document.querySelectorAll("#items-table tr").length;
-
     function formatRupiah(nominal) {
         return "Rp" + new Intl.NumberFormat('id-ID').format(nominal);
     }
+
+    let rowIndex = document.querySelectorAll("#items-table tr").length;
 
     function updateRow(row) {
         let select = row.querySelector(".item-select");

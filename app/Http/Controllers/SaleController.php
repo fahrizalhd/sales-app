@@ -120,7 +120,7 @@ class SaleController extends Controller
 
             return redirect()->route('sales.index')->with('error', "Only {$allowed} sales can be edited.");
         }
-        
+
         $items = Item::where('is_active', true)->get();
 
         return view('sales.edit', compact('sale', 'items'));
@@ -192,5 +192,24 @@ class SaleController extends Controller
         $sale->delete();
 
         return redirect()->route('sales.index')->with('success', "Sale: #{$sale->invoice_number} deleted successfully.");
+    }
+
+    /**
+     * Cancel the specified resource from storage.
+     */
+    public function cancel(string $id)
+    {
+        $sale = Sale::findOrFail($id);
+
+        if (! in_array($sale->status->value, Sale::canBeCancelled(), true)) {
+            return redirect()->route('sales.index')
+                ->with('error', "Sale: #{$sale->invoice_number} cannot be cancelled because its status is {$sale->status->label()}.");
+        }
+
+        $sale->update([
+            'status'  => SaleStatus::CANCELLED,
+        ]);
+
+        return redirect()->route('sales.index')->with('success', "Sale: #{$sale->invoice_number} cancelled successfully.");
     }
 }

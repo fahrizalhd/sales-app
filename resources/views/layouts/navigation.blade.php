@@ -19,11 +19,21 @@
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('sales.index')" :active="request()->routeIs('sales.*')">
                         {{ __('Sale') }}
+                        @if($unpaidSalesCount > 0)
+                        <span class="ml-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                            {{ $unpaidSalesCount }}
+                        </span>
+                        @endif
                     </x-nav-link>
                 </div>
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('payments.index')" :active="request()->routeIs('payments.*')">
                         {{ __('Payment') }}
+                        @if($pendingPaymentCount > 0)
+                        <span class="ml-2 bg-yellow-400 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                            {{ $pendingPaymentCount }}
+                        </span>
+                        @endif
                     </x-nav-link>
                 </div>
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
@@ -45,44 +55,6 @@
 
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <!-- Notification Dropdown -->
-                <!-- <x-dropdown align="right" width="80">
-                    <x-slot name="trigger">
-                        <button class="relative inline-flex items-center px-3 py-2 text-gray-500 hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <svg class="h-[20px] w-[20px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                            </svg>
-                            @if(Auth::user()->unreadNotifications->count())
-                            <span class="absolute top-[6px] right-3 block h-2 w-2 rounded-full bg-red-600"></span>
-                            @endif
-                        </button>
-                    </x-slot>
-
-                    <x-slot name="content">
-                        <div class="max-h-60 min-w-max overflow-y-auto">
-                            @forelse(Auth::user()->notifications as $notification)
-                            <form action="{{ route('notifications.read', $notification->id) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    @if(is_null($notification->read_at))
-                                    <span class="mr-2 h-2 w-2 rounded-full bg-red-600"></span>
-                                    @endif
-                                    <div class="flex-1 text-left">
-                                        {{ $notification->data['message'] ?? 'New Notification' }}
-                                        <div class="text-xs text-gray-500">
-                                            {{ $notification->created_at->diffForHumans() }}
-                                        </div>
-                                    </div>
-                                </button>
-                            </form>
-                            @empty
-                            <div class="px-6 py-2 text-sm text-gray-500 italic text-center">
-                                There is no notification
-                            </div>
-                            @endforelse
-                        </div>
-                    </x-slot>
-                </x-dropdown> -->
                 <div x-data="{ unreadCount: {{ Auth::user()->unreadNotifications->count() }} }" class="relative">
                     <x-dropdown align="right" width="80">
                         <x-slot name="trigger">
@@ -113,7 +85,7 @@
                                     Mark All as Read
                                 </button>
                             </div>
-                            <div class="max-h-60 min-w-max overflow-y-auto">
+                            <div class="max-h-60 w-80 overflow-y-auto">
                                 @forelse(Auth::user()->notifications as $notification)
                                 <div x-data="{ read: {{ $notification->read_at ? 'true' : 'false' }} }" x-effect="if (unreadCount === 0) read = true">
                                     <button type="button" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

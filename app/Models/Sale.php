@@ -144,6 +144,16 @@ class Sale extends Model
     }
 
     /**
+     * Get the list of statuses can be cancelled.
+     */
+    public static function canBeCancelled(): array
+    {
+        return [
+            SaleStatus::UNPAID->value,
+        ];
+    }
+
+    /**
      * Model booted events.
      *
      * - Cascade soft deletes to related SaleItems and Payments.

@@ -97,7 +97,7 @@
                                 $qty = $item->quantity;
                                 if ($qty === 0) {
                                     $status = 'out';
-                                } elseif ($qty <= 8) {
+                                } elseif ($qty <= 8 && $qty > 0) {
                                     $status='low' ;
                                 } else {
                                     $status='ok' ;

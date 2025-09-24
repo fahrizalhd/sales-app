@@ -30,8 +30,8 @@
                     </div>
                     <div class="flex items-end justify-end gap-2 mt-4">
                         <a href="{{ route('categories.index') }}"
-                            class="py-2.5 px-5  text-sm font-medium text-gray-900 focus:outline-none bg-none rounded-lg hover:bg-gray-100 hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-100">
-                            Cancel
+                            class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-none rounded-lg hover:bg-gray-100 hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-100">
+                            Back
                         </a>
                         <button type="submit"
                             class="inline-flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">

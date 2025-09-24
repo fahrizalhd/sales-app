@@ -19,7 +19,7 @@
                     </select>
 
                     <div class="flex justify-end items-center space-x-2">
-                        <a href="{{ route('users.index') }}" class="text-sm text-gray-800 px-4 py-2">Cancel</a>
+                        <a href="{{ route('users.index') }}" class="text-sm text-gray-800 px-4 py-2">Back</a>
                         <button class="bg-blue-600 text-white px-4 py-2 rounded text-sm">Save</button>
                     </div>
                 </form>

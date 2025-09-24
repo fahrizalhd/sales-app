@@ -123,7 +123,7 @@
                         <div class="flex items-end justify-end gap-2 mt-4">
                             <a href="{{ route('items.index') }}"
                                 class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-none rounded-lg hover:bg-gray-100 hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-100">
-                                Cancel
+                                Back
                             </a>
                             <button type="submit"
                                 class="inline-flex item-center gap-2 py-2.5 px-5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none rounded-lg focus:ring-4 focus:ring-blue-300">

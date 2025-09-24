@@ -37,7 +37,7 @@ class ItemController extends Controller
                 AllowedFilter::exact('is_active'),
                 AllowedFilter::callback('low_stock', function ($query, $value) {
                     if ($value) {
-                        $query->whereBetween('quantity', [1, 10]);
+                        $query->whereBetween('quantity', [1, 8]);
                     }
                 }),
             ])
