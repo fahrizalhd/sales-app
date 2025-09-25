@@ -68,11 +68,8 @@ Route::middleware('auth')->group(function () {
     });
 
     //Notification routes
-    Route::post('notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])
-        ->name('notifications.read');
-
-    Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllRead'])
-        ->name('notifications.markAllRead');
+    Route::post('notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
 });
 
 require __DIR__ . '/auth.php';

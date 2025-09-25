@@ -84,17 +84,21 @@
                                 <span class="{{ $colors[$sale->status->value] }} text-xs font-medium px-2.5 py-1 rounded-full">
                                     {{ $sale->status->label() }}
                                 </span>
+                                @if ($sale->is_refunded)
+                                <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-1 rounded-full ml-2">
+                                    Refunded
+                                </span>
+                                @endif
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex justify-center items-center gap-2">
                                     @switch($sale->status)
-                                        @case(\App\Enums\SaleStatus::UNPAID)
-                                        <a href="{{ route('sales.payments.create', $sale->id) }}"
-                                            class="inline-flex items-center justify-center p-2 text-blue-500 rounded-full hover:bg-blue-100 hover:text-blue-600 transition-colors duration-200">
-                                            Pay
-                                        </a>
+                                    @case(\App\Enums\SaleStatus::UNPAID)
+                                    <a href="{{ route('sales.payments.create', $sale->id) }}"
+                                        class="inline-flex items-center justify-center p-2 text-green-500 rounded-full hover:bg-green-100 hover:text-green-600 transition-colors duration-200">
+                                        Pay
+                                    </a>
                                     @break
-
                                     @case(\App\Enums\SaleStatus::NEED_REVIEW)
                                     <a href="{{ route('payments.show', $sale->payments->last()->id ?? '') }}"
                                         class="inline-flex items-center justify-center p-2 text-orange-800 rounded-full hover:bg-orange-100 hover:text-orange-600 transition-colors duration-200">
@@ -103,7 +107,7 @@
                                     @break
                                     @endswitch
 
-                                    @if (in_array($sale->status->value, \App\Models\Sale::canBeDeleted(), true))
+                                    @if (in_array($sale->status->value, \App\Models\Sale::canBeDeleted()))
                                     <form action="{{ route('sales.destroy', $sale) }}" method="POST" onsubmit="return confirm('Delete sale?')">
                                         @csrf
                                         @method('DELETE')

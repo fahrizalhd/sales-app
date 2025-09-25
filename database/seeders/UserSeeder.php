@@ -40,7 +40,7 @@ class UserSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'user@sales.app'],
             [
-                'name' => 'User',
+                'name' => 'Cashier',
                 'email' => 'user@sales.app',
                 'password' => Hash::make('user'),
                 'role' => UserRole::USER,

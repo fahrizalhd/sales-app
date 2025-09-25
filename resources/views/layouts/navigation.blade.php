@@ -20,7 +20,7 @@
                     <x-nav-link :href="route('sales.index')" :active="request()->routeIs('sales.*')">
                         {{ __('Sale') }}
                         @if($unpaidSalesCount > 0)
-                        <span class="ml-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                        <span class="ml-2 bg-red-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
                             {{ $unpaidSalesCount }}
                         </span>
                         @endif
@@ -30,7 +30,7 @@
                     <x-nav-link :href="route('payments.index')" :active="request()->routeIs('payments.*')">
                         {{ __('Payment') }}
                         @if($pendingPaymentCount > 0)
-                        <span class="ml-2 bg-yellow-400 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                        <span class="ml-2 bg-yellow-400 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full">
                             {{ $pendingPaymentCount }}
                         </span>
                         @endif
@@ -85,7 +85,7 @@
                                     Mark All as Read
                                 </button>
                             </div>
-                            <div class="max-h-60 w-80 overflow-y-auto">
+                            <!-- <div class="max-h-60 w-80 overflow-y-auto">
                                 @forelse(Auth::user()->notifications as $notification)
                                 <div x-data="{ read: {{ $notification->read_at ? 'true' : 'false' }} }" x-effect="if (unreadCount === 0) read = true">
                                     <button type="button" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -112,6 +112,45 @@
                                         </div>
                                     </button>
                                 </div>
+                                @empty
+                                <div class="px-4 py-2 text-sm text-gray-500 italic text-center">
+                                    There is no notification
+                                </div>
+                                @endforelse
+                            </div> -->
+                            <div class="max-h-80 w-80 overflow-y-auto">
+                                @forelse($groupedNotifications as $group => $notifications)
+                                <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase bg-gray-50">
+                                    {{ $group }}
+                                </div>
+
+                                @foreach($notifications as $notification)
+                                <div x-data="{ read: {{ $notification->read_at ? 'true' : 'false' }} }" x-effect="if (unreadCount === 0) read = true">
+                                    <button type="button" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        @click.stop="
+                                            if (!read) {
+                                                fetch('{{ route('notifications.read', $notification->id) }}', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                                        'Accept': 'application/json',
+                                                    }
+                                                }).then(() => { 
+                                                    read = true;
+                                                    unreadCount--;
+                                                })
+                                            }
+                                        ">
+                                        <span x-show="!read" class="-ml-1 mr-2 h-2 w-2 rounded-full bg-red-600"></span>
+                                        <div class="flex-1 text-left">
+                                            {{ $notification->data['message'] ?? 'New Notification' }}
+                                            <div class="text-xs text-gray-500">
+                                                {{ $notification->created_at->diffForHumans() }}
+                                            </div>
+                                        </div>
+                                    </button>
+                                </div>
+                                @endforeach
                                 @empty
                                 <div class="px-4 py-2 text-sm text-gray-500 italic text-center">
                                     There is no notification

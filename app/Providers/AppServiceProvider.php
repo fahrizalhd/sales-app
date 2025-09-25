@@ -3,13 +3,14 @@
 namespace App\Providers;
 
 use App\Enums\PaymentStatus;
-use App\Enums\SaleStatus;
 use App\Models\Payment;
 use App\Models\Sale;
 use App\Observers\SaleObserver;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Carbon\Carbon;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,20 +32,56 @@ class AppServiceProvider extends ServiceProvider
         Sale::observe(SaleObserver::class);
 
         View::composer('*', function ($view) {
-            $unpaidSalesCount = Sale::where('status', Sale::unpaidStatuses())
-                ->whereMonth('transaction_date', now()->month)
-                ->whereYear('transaction_date', now()->year)
-                ->count();
-            $pendingPaymentCount = Payment::where('status', PaymentStatus::PENDING)
-                ->whereHas('sale', function ($q) {
-                    $q->whereMonth('transaction_date', now()->month)
-                        ->whereYear('transaction_date', now()->year);
+            if (Auth::check()) {
+                $unpaidSalesCount = Sale::where('status', Sale::unpaidStatuses())
+                    ->whereMonth('transaction_date', now()->month)
+                    ->whereYear('transaction_date', now()->year)
+                    ->count();
+                $pendingPaymentCount = Payment::where('status', PaymentStatus::PENDING)
+                    ->whereHas('sale', function ($q) {
+                        $q->whereMonth('transaction_date', now()->month)
+                            ->whereYear('transaction_date', now()->year);
+                    })
+                    ->count();
+                $view->with([
+                    'unpaidSalesCount'      => $unpaidSalesCount,
+                    'pendingPaymentCount'   => $pendingPaymentCount,
+                ]);
+            }
+        });
+
+        View::composer('*', function ($view) {
+            if (Auth::check()) {
+                $notifications = Auth::user()->notifications()->get();
+
+                $groupedNotifications = $notifications->sortByDesc(function ($n) {
+                    return Carbon::parse($n->created_at);
                 })
-                ->count();
-            $view->with([
-                'unpaidSalesCount'      => $unpaidSalesCount,
-                'pendingPaymentCount'   => $pendingPaymentCount,
-            ]);
+                ->groupBy(function ($n) {
+                    $createdAt = Carbon::parse($n->created_at);
+
+                    if ($createdAt->isToday()) {
+                        return 'Today';
+                    } elseif ($createdAt->isYesterday()) {
+                        return 'Yesterday';
+                    } elseif ($createdAt->greaterThanOrEqualTo(now()->subDays(7))) {
+                        return 'Last 7 Days';
+                    } else {
+                        return 'Older';
+                    }
+                })
+                    ->sortBy(function ($_, $group) {
+                        $priority = [
+                            'Today' => 1,
+                            'Yesterday' => 2,
+                            'Last 7 Days' => 3,
+                            'Older' => 4,
+                        ];
+                        return $priority[$group] ?? 99;
+                    });
+
+                $view->with('groupedNotifications', $groupedNotifications);
+            }
         });
     }
 }

@@ -107,7 +107,6 @@ class Sale extends Model
     {
         return [
             SaleStatus::PAID->value,
-            // SaleStatus::PARTIALLY_PAID->value,
             SaleStatus::NEED_REVIEW->value,
         ];
     }
@@ -122,6 +121,17 @@ class Sale extends Model
             SaleStatus::CANCELLED->value,
         ];
     }
+
+    /**
+     * Statuses that can proceed to payment.
+     */
+    public static function canBePaid(): array
+    {
+        return [
+            SaleStatus::UNPAID->value,
+        ];
+    }
+
 
     /**
      * Get the list of statuses can be deleted.
@@ -152,6 +162,19 @@ class Sale extends Model
             SaleStatus::UNPAID->value,
         ];
     }
+
+    /**
+     * Determine if the sale has any refunded payments.
+     *
+     * @return bool
+     */
+    public function getIsRefundedAttribute(): bool
+    {
+        return $this->payments()
+            ->where('status', \App\Enums\PaymentStatus::REFUNDED)
+            ->exists();
+    }
+
 
     /**
      * Model booted events.

@@ -114,16 +114,26 @@
                             class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-none rounded-lg hover:bg-gray-100 hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-100">
                             Back
                         </a>
-                        @if($sale->canBeCancelled())                    
+                        @if (in_array($sale->status->value, \App\Models\Sale::canBeDeleted()))                  
                         <button type="submit" class="inline-flex items-center gap-2 text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none"
                             form="cancel-sale-{{ $sale->id }}" onclick="return confirm('Cancel this sale?')">
                             <svg class="w-[20px] h-[20px]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
                             </svg>
                             Cancel
+                        </button>
+                        @endif
+                        @if (in_array($sale->status->value, \App\Models\Sale::canBePaid()))                  
+                        <a href="{{ route('sales.payments.create', $sale->id) }}"
+                            class="inline-flex items-center gap-2 text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">
+                            <svg class="w-[20px] h-[20px]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                <path fill-rule="evenodd" d="M7 6a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-2v-4a3 3 0 0 0-3-3H7V6Z" clip-rule="evenodd"/>
+                                <path fill-rule="evenodd" d="M2 11a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-7Zm7.5 1a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z" clip-rule="evenodd"/>
+                                <path d="M10.5 14.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/>
+                            </svg>
+                            Pay
                         </a>
                         @endif
-
                         <button type="submit"
                             class="inline-flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">
                             <svg class="w-[20px] h-[20px]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
@@ -135,11 +145,12 @@
                         </button>
                     </div>
                 </form>
-                @if($sale->canBeCancelled())
-                    <form id="cancel-sale-{{ $sale->id }}" action="{{ route('sales.cancel', $sale->id) }}"  method="POST" class="hidden">
-                        @csrf
-                        @method('PATCH')
-                    </form>
+
+                @if (in_array($sale->status->value, \App\Models\Sale::canBeDeleted()))
+                <form id="cancel-sale-{{ $sale->id }}" action="{{ route('sales.cancel', $sale->id) }}"  method="POST" class="hidden">
+                    @csrf
+                    @method('PATCH')
+                </form>
                 @endif
             </div>
         </div>
