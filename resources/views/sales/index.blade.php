@@ -89,19 +89,24 @@
                                     Refunded
                                 </span>
                                 @endif
+                                @if ($sale->is_rejected_payment)
+                                <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-1 rounded-full ml-2">
+                                    Payment Rejected
+                                </span>
+                                @endif
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex justify-center items-center gap-2">
                                     @switch($sale->status)
                                     @case(\App\Enums\SaleStatus::UNPAID)
                                     <a href="{{ route('sales.payments.create', $sale->id) }}"
-                                        class="inline-flex items-center justify-center p-2 text-green-500 rounded-full hover:bg-green-100 hover:text-green-600 transition-colors duration-200">
+                                        class="flex items-center justify-center p-2 text-green-500 rounded-full hover:bg-green-100 transition-colors duration-200">
                                         Pay
                                     </a>
                                     @break
                                     @case(\App\Enums\SaleStatus::NEED_REVIEW)
                                     <a href="{{ route('payments.show', $sale->payments->last()->id ?? '') }}"
-                                        class="inline-flex items-center justify-center p-2 text-orange-800 rounded-full hover:bg-orange-100 hover:text-orange-600 transition-colors duration-200">
+                                        class="flex items-center justify-center p-2 text-orange-800 rounded-full hover:bg-orange-100 transition-colors duration-200">
                                         Review
                                     </a>
                                     @break
@@ -112,7 +117,7 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit"
-                                            class="inline-flex items-center justify-center p-2 text-red-500 rounded-full hover:bg-red-100 hover:text-red-600 transition-colors duration-200">
+                                            class="flex items-center justify-center p-2 text-red-500 rounded-full hover:bg-red-100 transition-colors duration-200">
                                             Delete
                                         </button>
                                     </form>

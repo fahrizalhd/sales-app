@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
-use App\Enums\SaleStatus;
 use App\Enums\UserRole;
 use App\Models\Payment;
 use App\Models\Sale;
@@ -101,7 +100,7 @@ class DashboardController extends Controller
             ->whereIn('status', Sale::unpaidStatuses())
             ->sum('total_amount');
 
-        $topItems = SaleItem::select('item_id', DB::raw('SUM(quantity) as total_qty'))
+        $topItems = SaleItem::select('item_id', DB::raw('SUM(quantity) as total_qty'), DB::raw('SUM(subtotal) as revenue_per_item'))
             ->whereHas('sale', function ($query) use ($selectedMonth, $selectedYear) {
                 $query->whereMonth('transaction_date', $selectedMonth)
                     ->whereYear('transaction_date', $selectedYear);
@@ -111,7 +110,7 @@ class DashboardController extends Controller
             ->with('item:id,name')
             ->take(5)
             ->get();
-            
+
         $thisMonthSaleStatuses = Sale::selectRaw('status, COUNT(*) as count, SUM(total_amount) as revenue')
             ->whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])
             ->groupBy('status')
@@ -130,7 +129,10 @@ class DashboardController extends Controller
             })
             ->select('method', DB::raw('COUNT(*) as total'))
             ->groupBy('method')
-            ->pluck('total', 'method');
+            ->pluck('total', 'method')
+            ->mapWithKeys(fn($total, $method) => [
+                PaymentMethod::from($method)->label() => $total
+            ]);
 
         $thisMonthSales = Sale::selectRaw("$dayExpr as day, COUNT(*) as total")
             ->whereBetween('transaction_date', [$thisMonthStart, $thisMonthEnd])

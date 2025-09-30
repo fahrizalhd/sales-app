@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PaymentStatus;
 use App\Enums\SaleStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -165,16 +166,21 @@ class Sale extends Model
 
     /**
      * Determine if the sale has any refunded payments.
-     *
-     * @return bool
      */
     public function getIsRefundedAttribute(): bool
     {
-        return $this->payments()
-            ->where('status', \App\Enums\PaymentStatus::REFUNDED)
-            ->exists();
+        return $this->payments()->where('status', PaymentStatus::REFUNDED)->exists();
     }
 
+    /**
+     * Determine if the last payment is rejected.
+     */
+    public function getIsRejectedPaymentAttribute(): bool
+    {
+        $lastPayment = $this->payments()->latest('created_at')->first();
+
+        return $lastPayment?->status === PaymentStatus::REJECTED;
+    }
 
     /**
      * Model booted events.

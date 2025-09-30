@@ -29,9 +29,7 @@ class PaymentController extends Controller
                     $query->whereHas('sale', function ($q) use ($value) {
                         $q->where('invoice_number', 'like', "%{$value}%")
                             ->orWhere('customer_name', 'like', "%{$value}%");
-                    })
-                        ->orWhere('method', 'like', "%{$value}%")
-                        ->orWhere('status', 'like', "%{$value}%");
+                    });
                 }),
                 AllowedFilter::callback('start_date', function ($query, $value) {
                     $query->whereDate('created_at', '>=', $value);
@@ -39,6 +37,8 @@ class PaymentController extends Controller
                 AllowedFilter::callback('end_date', function ($query, $value) {
                     $query->whereDate('created_at', '<=', $value);
                 }),
+                AllowedFilter::exact('status'),
+                AllowedFilter::exact('method'),
             ])
             ->allowedSorts([
                 'amount',
@@ -82,32 +82,36 @@ class PaymentController extends Controller
             'amount' => 'required|numeric|min:0',
         ]);
 
-        DB::transaction(function () use ($request, $sale) {
-            $method = PaymentMethod::from($request->method);
-            $isCash = $method === PaymentMethod::CASH;
-            $isNonCash = in_array($method, [PaymentMethod::QRIS, PaymentMethod::DEBIT]);
+        $method = PaymentMethod::from($request->method);
+        $isCash = $method === PaymentMethod::CASH;
+        $isNonCash = in_array($method, [PaymentMethod::QRIS, PaymentMethod::DEBIT]);
 
+        if ($isCash) {
+            foreach ($sale->saleItems as $saleItem) {
+                $item = Item::whereKey($saleItem->item_id)->first();
+                if ($item->quantity < $saleItem->quantity) {
+                    return redirect()->route('sales.payments.create', $sale->id)->with('error', "Insufficient stock for {$item->name}");
+                }
+            }
+        }
+
+        DB::transaction(function () use ($request, $sale, $isCash, $isNonCash) {
             Payment::create([
-                'sale_id'       => $sale->id,
-                'amount'        => $request->amount,
-                'method'        => $request->method,
-                'status'        => $isCash ? PaymentStatus::SUCCESS : PaymentStatus::PENDING,
-                'approved_at'   => $isCash ? now() : null,
+                'sale_id'     => $sale->id,
+                'amount'      => $request->amount,
+                'method'      => $request->method,
+                'status'      => $isCash ? PaymentStatus::SUCCESS : PaymentStatus::PENDING,
+                'approved_at' => $isCash ? now() : null,
             ]);
 
             if ($isCash) {
                 foreach ($sale->saleItems as $saleItem) {
                     $item = Item::whereKey($saleItem->item_id)->lockForUpdate()->first();
-                    if ($item->quantity < $saleItem->quantity) {
-                        return redirect()->route('sales.payments.create', $sale->id)->with('error', "Insufficient stock for {$item->name}");
-                    }
 
                     $oldQty = $item->quantity;
                     $newQty = $oldQty - $saleItem->quantity;
 
-                    $item->update([
-                        'quantity'   => $newQty,
-                    ]);
+                    $item->update(['quantity' => $newQty]);
 
                     StockHistory::create([
                         'item_id'      => $item->id,
@@ -117,19 +121,15 @@ class PaymentController extends Controller
                     ]);
                 }
 
-                $sale->update([
-                    'status' => SaleStatus::PAID,
-                ]);
+                $sale->update(['status' => SaleStatus::PAID]);
             } elseif ($isNonCash) {
-                $sale->update([
-                    'status' => SaleStatus::NEED_REVIEW,
-                ]);
+                $sale->update(['status' => SaleStatus::NEED_REVIEW]);
             }
         });
 
-        return redirect()->route('sales.index')
-            ->with('success', "Payment for Invoice: #{$sale->invoice_number} has been recorded and stock updated.");
+        return redirect()->route('sales.index')->with('success', "Payment for Invoice: #{$sale->invoice_number} has been recorded and stock updated.");
     }
+
 
     /**
      * Display the specified payment details.
@@ -163,35 +163,37 @@ class PaymentController extends Controller
     public function approve(string $id)
     {
         $payment = Payment::findOrFail($id);
+
         if ($payment->status !== PaymentStatus::PENDING) {
             return redirect()->back()->with('warning', 'Payment is not pending or already approved.');
         }
 
+        foreach ($payment->sale->saleItems as $saleItem) {
+            $item = Item::whereKey($saleItem->item_id)->lockForUpdate()->first();
+            if ($item->quantity < $saleItem->quantity) {
+                return redirect()->route('payments.show', $payment->id)->with('error', "Insufficient stock for {$item->name}");
+            }
+        }
+
         DB::transaction(function () use ($payment) {
             $payment->update([
-                'status'        => PaymentStatus::SUCCESS,
-                'approved_at'   => now(),
+                'status'      => PaymentStatus::SUCCESS,
+                'approved_at' => now(),
             ]);
 
             foreach ($payment->sale->saleItems as $saleItem) {
                 $item = Item::whereKey($saleItem->item_id)->lockForUpdate()->first();
 
-                if ($item->quantity < $saleItem->quantity) {
-                    return redirect()->route('payments.show', $payment->sale->id)->with('error', "Insufficient stock for {$item->name}");
-                }
-
                 $oldQty = $item->quantity;
                 $newQty = $oldQty - $saleItem->quantity;
 
-                $item->update([
-                    'quantity' => $newQty,
-                ]);
+                $item->update(['quantity' => $newQty]);
 
                 StockHistory::create([
-                    'item_id'       => $item->id,
-                    'old_quantity'  => $oldQty,
-                    'new_quantity'  => $newQty,
-                    'reason'        => "Approve Payment for Sale #{$payment->sale->invoice_number}",
+                    'item_id'      => $item->id,
+                    'old_quantity' => $oldQty,
+                    'new_quantity' => $newQty,
+                    'reason'       => "Approve Payment for Sale #{$payment->sale->invoice_number}",
                 ]);
             }
 
@@ -200,8 +202,7 @@ class PaymentController extends Controller
             ]);
         });
 
-        return redirect()->route('payments.show', $id)
-            ->with('success', "Payment for Invoice: #{$payment->sale->invoice_number} approved successfully.");
+        return redirect()->route('payments.show', $id)->with('success', "Payment for Invoice: #{$payment->sale->invoice_number} approved successfully.");
     }
 
     /**

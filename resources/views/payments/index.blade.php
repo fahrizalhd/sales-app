@@ -15,6 +15,26 @@
                         <span>to</span>
                         <input type="date" name="filter[end_date]" value="{{ request('filter.end_date') }}"
                             class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5">
+                        <select name="filter[method]"
+                            class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5">
+                            <option value="">All Channel</option>
+                            @foreach (\App\Enums\PaymentMethod::cases() as $method)
+                            <option value="{{ $method->value }}"
+                                @selected(request('filter.method')===$method->value)>
+                                {{ $method->label() }}
+                            </option>
+                            @endforeach
+                        </select>
+                        <select name="filter[status]"
+                            class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5">
+                            <option value="">All Status</option>
+                            @foreach (\App\Enums\PaymentStatus::cases() as $status)
+                            <option value="{{ $status->value }}"
+                                @selected(request('filter.status')===$status->value)>
+                                {{ $status->label() }}
+                            </option>
+                            @endforeach
+                        </select>
                         <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5">Search</button>
                     </form>
                 </div>

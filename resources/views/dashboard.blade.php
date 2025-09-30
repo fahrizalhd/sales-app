@@ -164,6 +164,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    function formatRupiah(nominal) {
+        return "Rp" + new Intl.NumberFormat('id-ID').format(nominal);
+    }
+
     // Function to display "No data available" message
     function showNoData(containerId, message = "No data available") {
         const container = document.getElementById(containerId).parentElement;
@@ -173,8 +177,9 @@
     // Top Items Chart
     const ctxTopItems = document.getElementById('topItemsChart').getContext('2d');
     const topItemsLabels = @json($topItems -> pluck('item.name'));
-    const topItemsData = @json($topItems -> pluck('total_qty'));
-    if (topItemsData.length === 0) {
+    const topItemsQty = @json($topItems -> pluck('total_qty'));
+    const topItemsRevenuePerItem = @json($topItems -> pluck('revenue_per_item'));
+    if (topItemsQty.length === 0) {
         showNoData('topItemsChart', 'No items sold this month');
     } else {
         renderTopItemsChart();
@@ -187,7 +192,7 @@
                 labels: topItemsLabels,
                 datasets: [{
                     label: 'Quantity Sold',
-                    data: topItemsData,
+                    data: topItemsQty,
                     backgroundColor: [
                         '#67C090B3',
                         '#E4004BB3',
@@ -218,7 +223,10 @@
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                return context.parsed.x + ' pcs';
+                                const index = context.dataIndex;
+                                const qty = topItemsQty[index];
+                                const revenue = formatRupiah(topItemsRevenuePerItem[index]) || 0;
+                                return revenue.toLocaleString() + ' for ' + qty + ' pcs';
                             }
                         }
                     }
@@ -265,17 +273,18 @@
 
     // Sale Status Chart
     const ctxSaleStatus = document.getElementById('saleStatusChart').getContext('2d');
-    const statusData = @json($thisMonthSaleStatuses);
+    const saleStatusData = @json($thisMonthSaleStatuses);
     const statusColors = {
         UNPAID: '#FF9F40',       
         NEED_REVIEW: '#C27803',  
         PAID: '#67C090',         
         CANCELLED: '#E4004B',    
     };
-    const saleStatusLabels = statusData.map(s => `${s.label} (${s.count} invoice)`);
-    const saleStatusRevenues = statusData.map(s => s.revenue);
-    const saleStatusCount = statusData.map(s => s.count);
-    const saleStatusColors = statusData.map(s => statusColors[s.status] || '#CCCCCC');
+    const saleStatusLabels = saleStatusData.map(s => `${s.label} (${s.count} invoice)`);
+    // const saleStatusLabels = saleStatusData.map(s => s.label);
+    const saleStatusRevenues = saleStatusData.map(s => s.revenue);
+    const saleStatusCount = saleStatusData.map(s => s.count);
+    const saleStatusColors = saleStatusData.map(s => statusColors[s.status] || '#CCCCCC');
 
     if (saleStatusRevenues.length === 0 || saleStatusRevenues.every(r => r === 0)) {
         showNoData('saleStatusChart', 'No sales this month');
@@ -289,27 +298,28 @@
             data: {
                 labels: saleStatusLabels,
                 datasets: [{
-                    data: saleStatusRevenues,
+                    data: saleStatusCount,
                     backgroundColor: saleStatusColors,
-                    borderWidth: 0,
+                    borderWidth: 1,
                 }]
             },
             options: {
                 responsive: true,
-                cutout: '80%',
+                cutout: '75%',
                 plugins: {
                     legend: {
                         position: 'bottom',
-                        labels: { usePointStyle: true },
+                        labels: { 
+                            usePointStyle: true 
+                        },
                     },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                let value = context.raw;
-                                return new Intl.NumberFormat('id-ID', {
-                                    style: 'currency',
-                                    currency: 'IDR'
-                                }).format(value);
+                                const item = saleStatusData[context.dataIndex];
+                                const count = item.count;
+                                const revenue = formatRupiah(item.revenue);
+                                return `${revenue}`;
                             }
                         }
                     }
@@ -358,7 +368,8 @@
                                 const value = context.parsed;
                                 const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
                                 const percentage = total ? ((value / total) * 100).toFixed(1) : 0;
-                                return `${label}: ${value} (${percentage}%)`;
+                                const percentageAdjustment = percentage.endsWith('.0') ? percentage.slice(0, -2) : percentage;
+                                return `${label} (${percentageAdjustment}%): ${value} invoice(s)`;
                             }
                         }
                     }
@@ -392,7 +403,7 @@
             type: 'line',
             data: {
                 datasets: [{
-                        label: 'This Month',
+                        label: 'This Month ({{ $thisMonthName }})',
                         data: thisMonthData,
                         fill: false,
                         borderColor: '#67C090',
@@ -401,7 +412,7 @@
                         pointRadius: 3,
                     },
                     {
-                        label: 'Last Month',
+                        label: 'Last Month ({{ $lastMonthName }})',
                         data: lastMonthData,
                         fill: false,
                         borderColor: '#FF9F40',
@@ -440,7 +451,10 @@
                             },
                             label: function(context) {
                                 const value = context.parsed.y;
-                                return `${context.dataset.label}: ${value} order(s)`;
+                                let datasetLabel = context.dataset.label;
+                                datasetLabel = datasetLabel.replace(/\s*\(.*?\)\s*/, '');
+
+                                return `${datasetLabel}: ${value} order(s)`;
                             },
                         },
                     },
