@@ -30,7 +30,7 @@
                     <x-nav-link :href="route('payments.index')" :active="request()->routeIs('payments.*')">
                         {{ __('Payment') }}
                         @if($pendingPaymentCount > 0)
-                        <span class="ml-2 bg-yellow-400 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full">
+                        <span class="ml-2 bg-red-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
                             {{ $pendingPaymentCount }}
                         </span>
                         @endif
@@ -85,72 +85,58 @@
                                     Mark All as Read
                                 </button>
                             </div>
-                            <!-- <div class="max-h-60 w-80 overflow-y-auto">
-                                @forelse(Auth::user()->notifications as $notification)
-                                <div x-data="{ read: {{ $notification->read_at ? 'true' : 'false' }} }" x-effect="if (unreadCount === 0) read = true">
-                                    <button type="button" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                        @click.stop="
-                                            if (!read) {
-                                                fetch('{{ route('notifications.read', $notification->id) }}', {
-                                                    method: 'POST',
-                                                    headers: {
-                                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                                        'Accept': 'application/json',
-                                                    }
-                                                }).then(() => { 
-                                                    read = true;
-                                                    unreadCount--;
-                                                })
-                                            }
-                                        ">
-                                        <span x-show="!read" class="-ml-1 mr-2 h-2 w-2 rounded-full bg-red-600"></span>
-                                        <div class="flex-1 text-left">
-                                            {{ $notification->data['message'] ?? 'New Notification' }}
-                                            <div class="text-xs text-gray-500">
-                                                {{ $notification->created_at->diffForHumans() }}
-                                            </div>
-                                        </div>
-                                    </button>
-                                </div>
-                                @empty
-                                <div class="px-4 py-2 text-sm text-gray-500 italic text-center">
-                                    There is no notification
-                                </div>
-                                @endforelse
-                            </div> -->
                             <div class="max-h-80 w-80 overflow-y-auto">
                                 @forelse($groupedNotifications as $group => $notifications)
-                                <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase bg-gray-50">
-                                    {{ $group }}
-                                </div>
-
-                                @foreach($notifications as $notification)
-                                <div x-data="{ read: {{ $notification->read_at ? 'true' : 'false' }} }" x-effect="if (unreadCount === 0) read = true">
-                                    <button type="button" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                        @click.stop="
-                                            if (!read) {
-                                                fetch('{{ route('notifications.read', $notification->id) }}', {
-                                                    method: 'POST',
-                                                    headers: {
-                                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                                        'Accept': 'application/json',
-                                                    }
-                                                }).then(() => { 
-                                                    read = true;
-                                                    unreadCount--;
-                                                })
-                                            }
-                                        ">
-                                        <span x-show="!read" class="-ml-1 mr-2 h-2 w-2 rounded-full bg-red-600"></span>
-                                        <div class="flex-1 text-left">
-                                            {{ $notification->data['message'] ?? 'New Notification' }}
-                                            <div class="text-xs text-gray-500">
-                                                {{ $notification->created_at->diffForHumans() }}
-                                            </div>
-                                        </div>
+                                <div x-data="{ open: {{ $group === 'Today' ? 'true' : 'false' }} }" class="border-b">
+                                    <button type="button" 
+                                        class="w-full flex justify-between items-center px-4 py-2 text-xs font-semibold text-gray-500 uppercase bg-gray-50 hover:bg-gray-100"
+                                        @click.stop="open = !open">
+                                        <span>{{ $group }}</span>
+                                        <svg x-show="!open" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transform transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                        <svg x-show="open" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transform transition-transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
                                     </button>
+                                    <div x-show="open" x-collapse 
+                                        x-transition:enter="transition-all ease-out duration-500"
+                                        x-transition:enter-start="opacity-0 max-h-0"
+                                        x-transition:enter-end="opacity-100 max-h-96"
+                                        x-transition:leave="transition-all ease-in duration-300"
+                                        x-transition:leave-start="opacity-100 max-h-96"
+                                        x-transition:leave-end="opacity-0 max-h-0">
+                                        @foreach($notifications as $notification)
+                                        <div x-data="{ read: {{ $notification->read_at ? 'true' : 'false' }} }" 
+                                            x-effect="if (unreadCount === 0) read = true">
+                                            <button type="button"
+                                                class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                @click.stop="
+                                                    if (!read) {
+                                                        fetch('{{ route('notifications.read', $notification->id) }}', {
+                                                            method: 'POST',
+                                                            headers: {
+                                                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                                                'Accept': 'application/json',
+                                                            }
+                                                        }).then(() => { 
+                                                            read = true;
+                                                            unreadCount--;
+                                                        })
+                                                    }
+                                                ">
+                                                <span x-show="!read" class="-ml-1 mr-2 h-2 w-2 rounded-full bg-red-600"></span>
+                                                <div class="flex-1 text-left">
+                                                    {{ $notification->data['message'] ?? 'New Notification' }}
+                                                    <div class="text-xs text-gray-500">
+                                                        {{ $notification->created_at->diffForHumans() }}
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        </div>
+                                        @endforeach
+                                    </div>
                                 </div>
-                                @endforeach
                                 @empty
                                 <div class="px-4 py-2 text-sm text-gray-500 italic text-center">
                                     There is no notification
