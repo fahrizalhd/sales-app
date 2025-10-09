@@ -48,14 +48,14 @@
                             <th scope="col" class="px-6 py-3"><x-sort-link column="amount" label="Amount"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="method" label="Channel"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="status" label="Status"></x-sort-link></th>
-                            <th scope="col" class="px-6 py-3"><x-sort-link column="created_by" label="Submitter"></x-sort-link></th>
+                            <th scope="col" class="px-6 py-3"><x-sort-link column="created_at" label="Submitted at"></x-sort-link></th>
                             <th scope="col" class="px-6 py-3"><x-sort-link column="approved_at" label="Approved at"></x-sort-link></th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($payments as $payment)
                         <tr data-href="{{ route('payments.show', $payment->id) }}" class="bg-white border-b border-gray-200 hover:bg-gray-50 cursor-pointer">
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4 font-semibold">
                                 <div class="flex items-center gap-2">
                                     <span>{{ $payment->sale->invoice_number }}</span>
                                     <button type="button" class="copy-btn text-gray-500 hover:text-gray-700" data-clipboard-text="{{ $payment->sale->invoice_number }}">
@@ -80,7 +80,7 @@
                             <td class="px-6 py-4">
                                 <span class="{{ $badgeClasses }} text-xs font-medium px-2.5 py-1 rounded-full">{{ $status?->label() ?? 'Unknown' }}</span>
                             </td>
-                            <td class="px-6 py-4">{{ $payment->createdBy->name }} by {{ format_date_with_time($payment->created_at) }}</td>
+                            <td class="px-6 py-4">{{ format_date_with_time($payment->created_at) }} - {{ $payment->createdBy->name }}</td>
                             <td class="px-6 py-4">
                                 @if ($payment->status == \App\Enums\PaymentStatus::PENDING)
                                 <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-1 rounded-full">Not Approved Yet</span>

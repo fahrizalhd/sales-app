@@ -45,9 +45,9 @@ class PaymentController extends Controller
                 'method',
                 'status',
                 'approved_at',
-                'created_by',
+                'created_at',
             ])
-            ->latest('updated_at')
+            ->latest('created_at')
             ->paginate(10)
             ->withQueryString();
 

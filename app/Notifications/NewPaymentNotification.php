@@ -2,23 +2,24 @@
 
 namespace App\Notifications;
 
-use App\Models\Sale;
+use App\Enums\PaymentStatus;
+use App\Models\Payment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewSaleNotification extends Notification
+class NewPaymentNotification extends Notification
 {
     use Queueable;
 
-    public Sale $sale;
+    public Payment $payment;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(Sale $sale)
+    public function __construct(Payment $payment)
     {
-        $this->sale = $sale;
+        $this->payment = $payment;
     }
 
     /**
@@ -59,12 +60,17 @@ class NewSaleNotification extends Notification
      */
     public function toDatabase(object $notifiable): array
     {
+        $status = $this->payment->status instanceof PaymentStatus ? $this->payment->status : PaymentStatus::from($this->payment->status);
+        $sale = $this->payment->sale;
+
         return [
-            'message'   => sprintf('A new sale with invoice %s has been created for customer %s.',
-                $this->sale->invoice_number,
-                $this->sale->customer_name
+            'message'   => sprintf('A new payment of Rp%s via %s has been made for invoice %s (Status: %s).',
+                number_format($this->payment->amount, 0, ',', '.'),
+                strtoupper($this->payment->method->value),
+                $sale?->invoice_number ?? '-',
+                $status->label()
             ),
-            'sale_id'   => $this->sale->id,
+            'payment_id' => $this->payment->id,
         ];
     }
 }
