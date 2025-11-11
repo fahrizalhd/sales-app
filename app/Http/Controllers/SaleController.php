@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Enums\SaleStatus;
+use App\Exports\SalesExport;
 use App\Models\Item;
 use App\Models\Sale;
 use Illuminate\Http\Request;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SaleController extends Controller
 {
@@ -212,9 +214,20 @@ class SaleController extends Controller
         }
 
         $sale->update([
-            'status'  => SaleStatus::CANCELLED,
+            'status' => SaleStatus::CANCELLED,
         ]);
 
         return redirect()->route('sales.index')->with('success', "Sale: #{$sale->invoice_number} cancelled successfully.");
+    }
+
+    /**
+     * Export as Excel file.
+     */
+    public function exportExcel(Request $request) 
+    {
+        $month = $request->get('month', now()->month);
+        $year = $request->get('year', now()->year);
+
+        return Excel::download(new SalesExport($month, $year), "sales_report_{$month}_{$year}.xlsx");
     }
 }

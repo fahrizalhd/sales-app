@@ -53,6 +53,7 @@ Route::middleware('auth')->group(function () {
     // Sale management routes
     Route::resource('sales', SaleController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
     Route::patch('sales/{id}/cancel', [SaleController::class, 'cancel'])->name('sales.cancel');
+    Route::get('sales/export/excel', [SaleController::class, 'exportExcel'])->name('sales.export.excel');
 
     // Payment management routes
     Route::resource('payments', PaymentController::class)->only(['index', 'show', 'destroy']);
