@@ -25,7 +25,7 @@ class ItemController extends Controller
     {
         $lowStockItemThresholdMin = config('filters.item.low_stock_threshold_min');
         $lowStockItemThresholdMax = config('filters.item.low_stock_threshold_max');
-        
+
         $items = QueryBuilder::for(Item::class)
             ->allowedFilters([
                 AllowedFilter::callback('search', function ($query, $value) {
@@ -99,28 +99,30 @@ class ItemController extends Controller
     {
         // Validate the request data
         $request->validate([
-            'name' => 'required|string|max:255',
-            'sku' => 'nullable|string|max:50|unique:items,sku',
-            'description' => 'nullable|string|max:1000',
-            'price' => 'required|numeric|min:0',
-            'quantity' => 'required|integer|min:0',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'is_active' => 'boolean',
-            'category_id' => 'required|exists:categories,id',
+            'name'          => 'required|string|max:255',
+            'sku'           => 'nullable|string|max:50|unique:items,sku',
+            'description'   => 'nullable|string|max:1000',
+            'price'         => 'required|numeric|min:0',
+            'cost'          => 'required|numeric|min:0',
+            'quantity'      => 'required|integer|min:0',
+            'image'         => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'is_active'     => 'boolean',
+            'category_id'   => 'required|exists:categories,id',
         ]);
 
         // Create a new item
         $item = Item::create([
-            'name' => $request->input('name'),
-            'sku' => $request->input('sku'),
-            'description' => $request->input('description'),
-            'price' => $request->input('price'),
-            'quantity' => $request->input('quantity'),
-            'image_path' => $request->file('image')
-                ? $request->file('image')->store('images/items', 'public')
-                : null,
-            'is_active' => $request->input('is_active', true),
-            'category_id' => $request->input('category_id'),
+            'name'          => $request->input('name'),
+            'sku'           => $request->input('sku'),
+            'description'   => $request->input('description'),
+            'price'         => $request->input('price'),
+            'cost'          => $request->input('cost'),
+            'quantity'      => $request->input('quantity'),
+            'image_path'    => $request->file('image')
+                                ? $request->file('image')->store('images/items', 'public')
+                                : null,
+            'is_active'     => $request->input('is_active', true),
+            'category_id'   => $request->input('category_id'),
         ]);
 
         // Redirect to the items index with a success message
@@ -175,13 +177,14 @@ class ItemController extends Controller
 
         // Validate the request data
         $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string|max:1000',
-            'price' => 'required|numeric|min:0',
-            'quantity' => 'required|integer|min:0',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'is_active' => 'boolean',
-            'category_id' => 'required|exists:categories,id',
+            'name'          => 'required|string|max:255',
+            'description'   => 'nullable|string|max:1000',
+            'price'         => 'required|numeric|min:0',
+            'cost'          => 'required|numeric|min:0',
+            'quantity'      => 'required|integer|min:0',
+            'image'         => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'is_active'     => 'boolean',
+            'category_id'   => 'required|exists:categories,id',
         ]);
 
         // If the delete_image flag is set, remove the image
@@ -202,13 +205,14 @@ class ItemController extends Controller
 
         // Update the item
         $item->update([
-            'name' => $request->name,
-            'description' => $request->description,
-            'price' => $request->price,
-            'quantity' => $request->quantity,
-            'is_active' => $request->boolean('is_active'),
-            'category_id' => $request->category_id,
-            'updated_at' => now(),
+            'name'          => $request->name,
+            'description'   => $request->description,
+            'price'         => $request->price,
+            'cost'          => $request->cost,
+            'quantity'      => $request->quantity,
+            'is_active'     => $request->boolean('is_active'),
+            'category_id'   => $request->category_id,
+            'updated_at'    => now(),
         ]);
 
         $item->refresh();
@@ -216,11 +220,11 @@ class ItemController extends Controller
         // Store to Stock History
         if ($oldQty != $request->quantity) {
             StockHistory::create([
-                'item_id' => $item->id,
-                'change' => $item->quantity - $oldQty,
-                'old_quantity' => $oldQty,
-                'new_quantity' => $item->quantity,
-                'reason' => 'Stock Update',
+                'item_id'       => $item->id,
+                'change'        => $item->quantity - $oldQty,
+                'old_quantity'  => $oldQty,
+                'new_quantity'  => $item->quantity,
+                'reason'        => 'Stock Update',
             ]);
         }
 

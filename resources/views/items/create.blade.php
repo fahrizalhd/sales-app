@@ -57,6 +57,20 @@
                             </div>
                         </div>
                         <div>
+                            <label for="cost" class="block text-sm font-medium text-gray-700">Cost</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
+                                    Rp
+                                </div>
+                                <input type="number" name="cost" id="cost" required step="10"
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 ps-10"
+                                    value="{{ old('cost') }}">
+                                @error('cost')
+                                <span class="text-red-500 text-sm">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        </div>
+                        <div>
                             <label for="quantity" class="block text-sm font-medium text-gray-700">Stock Quantity</label>
                             <input type="number" name="quantity" id="quantity" required
                                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"

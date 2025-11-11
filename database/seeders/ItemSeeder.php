@@ -103,10 +103,12 @@ class ItemSeeder extends Seeder
 
             if ($category) {
                 $price = $this->randomPriceByCategory($categoryName);
+                $cost = $this->generateCostPrice($price, $categoryName);
 
                 Item::create([
                     'name'        => $name,
                     'price'       => $price,
+                    'cost'        => $cost,
                     'quantity'    => rand(1, 25),
                     'category_id' => $category->id,
                     'sku'         => Item::generateSku(),
@@ -131,7 +133,7 @@ class ItemSeeder extends Seeder
             'Fruits'             => rand(5000, 50000),
             'Vegetables'         => rand(3000, 30000),
             'Grains & Cereals'   => rand(10000, 80000),
-            'Condiments & Sauces'=> rand(5000, 30000),
+            'Condiments & Sauces' => rand(5000, 30000),
             'Personal Care'      => rand(5000, 50000),
             'Household Supplies' => rand(5000, 40000),
             'Electronics'        => rand(50000, 500000),
@@ -145,5 +147,21 @@ class ItemSeeder extends Seeder
         };
 
         return round($raw / 1000) * 1000;
+    }
+
+    /**
+     * Generate realistic cost price based on category
+     */
+    private function generateCostPrice(int $price, string $category): int
+    {
+        // Set margin range based on category
+        $marginRange = match ($category) {
+            'Electronics', 'Clothing', 'Footwear', 'Toys & Games', 'Automotive' => [0.6, 0.75],
+            default => [0.7, 0.85],
+        };
+
+        $factor = rand($marginRange[0] * 100, $marginRange[1] * 100) / 100;
+
+        return round($price * $factor / 1000) * 1000;
     }
 }

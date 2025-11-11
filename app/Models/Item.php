@@ -40,6 +40,7 @@ class Item extends Model
         'name',
         'description',
         'price',
+        'cost',
         'quantity',
         'sku',
         'image_path',
@@ -52,6 +53,7 @@ class Item extends Model
      */
     protected $casts = [
         'price'     => 'decimal:2',
+        'cost'      => 'decimal:2',
         'is_active' => 'boolean',
     ];
 

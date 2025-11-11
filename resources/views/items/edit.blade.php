@@ -32,7 +32,6 @@
                                     @endforeach
                                 </select>
                             </div>
-
                             <div>
                                 <label for="sku" class="block text-sm font-medium text-gray-700">SKU</label>
                                 <input type="text" name="sku" id="sku" required readonly
@@ -52,6 +51,20 @@
                                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 ps-10"
                                         value="{{ old('price', number_format($item->price, 0, '', '')) }}">
                                     @error('price')
+                                    <span class="text-red-500 text-sm">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div>
+                                <label for="cost" class="block text-sm font-medium text-gray-700">Cost</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
+                                        Rp
+                                    </div>
+                                    <input type="number" name="cost" id="cost" required step=10
+                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 ps-10"
+                                        value="{{ old('cost', number_format($item->cost, 0, '', '')) }}">
+                                    @error('cost')
                                     <span class="text-red-500 text-sm">{{ $message }}</span>
                                     @enderror
                                 </div>
