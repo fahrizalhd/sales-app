@@ -27,7 +27,7 @@
                                 <tr>
                                     <td class="font-semibold">Date</td>
                                     <td>:</td>
-                                    <td>{{ format_date_with_time($payment->created_at) }}</td>
+                                    <td>{{ format_date_with_time($payment->sale->transaction_date) }}</td>
                                 </tr>
                                 <tr>
                                     <td class="font-semibold">Customer</td>
@@ -53,6 +53,10 @@
                         <span>{{ number_format($payment->sale->total_amount, 0, ',', '.') }}</span>
                     </div>
                     <div class="mt-2 flex justify-between text-xs">
+                        <span>Payment</span>
+                        <span>{{ format_date_with_time($payment->created_at) }}</span>
+                    </div>
+                    <div class="mt-2 flex justify-between text-xs">
                         <span>Channel</span>
                         <span>{{ $payment->method->label() }}</span>
                     </div>
@@ -62,7 +66,7 @@
                         <p class="mt-1">See you again!</p>
                     </div>
                 </div>
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 self-start">
+                <div class="bg-white shadow-sm sm:rounded-lg p-4 self-start">
                     <div>
                         <h3 class="text-md font-semibold mb-2">Sale Information</h3>
                         <p><span class="font-medium">Invoice:</span> {{ $payment->sale->invoice_number }}</p>
@@ -76,10 +80,10 @@
                         @php
                         $status = \App\Enums\PaymentStatus::tryFrom($payment->status->value);
                         $badgeClasses = match($status) {
-                        \App\Enums\PaymentStatus::SUCCESS => 'bg-green-100 text-green-800',
-                        \App\Enums\PaymentStatus::PENDING => 'bg-yellow-100 text-yellow-800',
-                        \App\Enums\PaymentStatus::REJECTED => 'bg-red-100 text-red-800',
-                        default => 'bg-gray-100 text-gray-800',
+                            \App\Enums\PaymentStatus::SUCCESS => 'bg-green-100 text-green-800',
+                            \App\Enums\PaymentStatus::PENDING => 'bg-yellow-100 text-yellow-800',
+                            \App\Enums\PaymentStatus::REJECTED => 'bg-red-100 text-red-800',
+                            default => 'bg-gray-100 text-gray-800',
                         };
                         @endphp
                         <p>
@@ -88,8 +92,7 @@
                                 {{ $status?->label() ?? 'Unknown' }}
                             </span>
                         </p>
-                        <p><span class="font-medium">Created at:</span> {{ format_date_with_time($payment->created_at) }}</p>
-                        <p><span class="font-medium">Submitted by:</span> {{ $payment->createdBy->name }}</p>
+                        <p><span class="font-medium">Created:</span> {{ format_date_with_time($payment->created_at) }} by {{ $payment->createdBy->name }}</p>
                     </div>
                     <div class="flex justify-between gap-2 mt-4">
                         <div class="flex justify-start gap-2">
@@ -117,16 +120,30 @@
                                 </button>
                             </form>
                             @elseif ($payment->status === \App\Enums\PaymentStatus::SUCCESS)
+                            @php
+                            $isRefundDisabled = $payment->status === \App\Enums\PaymentStatus::SUCCESS
+                                && $payment->sale->transaction_date->lt(\Carbon\Carbon::now()->subDays(2));
+                            @endphp
+
                             <form action="{{ route('payments.refund', $payment->id) }}" method="POST" onsubmit="return confirm('Refund this payment?')">
                                 @csrf
                                 @method('PATCH')
-                                <button type="submit"
-                                    class="flex items-center gap-2 text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">
-                                    <svg class="w-[20px] h-[20px]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9h13a5 5 0 0 1 0 10H7M3 9l4-4M3 9l4 4"/>
-                                    </svg>
-                                    Refund
-                                </button>
+                                <div x-data="{ disabled: {{ $isRefundDisabled ? 'true' : 'false' }} }" 
+                                    class="relative group inline-block ">
+                                    <button type="submit"
+                                        class="flex items-center gap-2 text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                                        :disabled="disabled">
+                                        <svg class="w-[20px] h-[20px]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9h13a5 5 0 0 1 0 10H7M3 9l4-4M3 9l4 4"/>
+                                        </svg>
+                                        Refund
+                                    </button>
+
+                                    <div x-show="disabled" x-transition
+                                        class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                        Refunds can only be made within 2 days after the transaction.
+                                    </div>
+                                </div>
                             </form>
                             @elseif ($payment->status === \App\Enums\PaymentStatus::REJECTED)
                             <a href="{{ route('sales.payments.create', $payment->sale->id) }}"

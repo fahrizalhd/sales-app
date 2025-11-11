@@ -23,6 +23,9 @@ class ItemController extends Controller
      */
     public function index()
     {
+        $lowStockItemThresholdMin = config('filters.item.low_stock_threshold_min');
+        $lowStockItemThresholdMax = config('filters.item.low_stock_threshold_max');
+        
         $items = QueryBuilder::for(Item::class)
             ->allowedFilters([
                 AllowedFilter::callback('search', function ($query, $value) {
@@ -35,9 +38,9 @@ class ItemController extends Controller
                 }),
                 // For Quick Filter
                 AllowedFilter::exact('is_active'),
-                AllowedFilter::callback('low_stock', function ($query, $value) {
+                AllowedFilter::callback('low_stock', function ($query, $value) use ($lowStockItemThresholdMin, $lowStockItemThresholdMax) {
                     if ($value) {
-                        $query->whereBetween('quantity', [1, 8]);
+                        $query->whereBetween('quantity', [$lowStockItemThresholdMin, $lowStockItemThresholdMax]);
                     }
                 }),
             ])

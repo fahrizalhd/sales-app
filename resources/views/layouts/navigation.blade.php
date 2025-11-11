@@ -39,6 +39,11 @@
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('items.index')" :active="request()->routeIs('items.*')">
                         {{ __('Item') }}
+                        @if(isset($lowStockItemCount) && $lowStockItemCount > 0)
+                            <span class="ml-2 bg-yellow-200 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full">
+                                {{ $lowStockItemCount }}
+                            </span>
+                        @endif
                     </x-nav-link>
                 </div>
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
@@ -85,21 +90,21 @@
                                     Mark All as Read
                                 </button>
                             </div>
-                            <div class="max-h-80 w-80 overflow-y-auto">
+                            <div class="max-h-[480px] w-80 overflow-y-auto">
                                 @forelse($groupedNotifications as $group => $notifications)
-                                <div x-data="{ open: {{ $group === 'Today' ? 'true' : 'false' }} }" class="border-b">
-                                    <button type="button" 
+                                <div x-data="{ expand: {{ $group === 'Today' ? 'true' : 'false' }} }" class="border-b">
+                                    <button type="button"
                                         class="w-full flex justify-between items-center px-4 py-2 text-xs font-semibold text-gray-500 uppercase bg-gray-50 hover:bg-gray-100"
-                                        @click.stop="open = !open">
+                                        @click.stop="expand = !expand">
                                         <span>{{ $group }}</span>
-                                        <svg x-show="!open" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transform transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        <svg x-show="!expand" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transform transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                                         </svg>
-                                        <svg x-show="open" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transform transition-transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        <svg x-show="expand" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transform transition-transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                                         </svg>
                                     </button>
-                                    <div x-show="open" x-collapse 
+                                    <div x-show="expand" x-collapse
                                         x-transition:enter="transition-all ease-out duration-500"
                                         x-transition:enter-start="opacity-0 max-h-0"
                                         x-transition:enter-end="opacity-100 max-h-96"
@@ -107,7 +112,7 @@
                                         x-transition:leave-start="opacity-100 max-h-96"
                                         x-transition:leave-end="opacity-0 max-h-0">
                                         @foreach($notifications as $notification)
-                                        <div x-data="{ read: {{ $notification->read_at ? 'true' : 'false' }} }" 
+                                        <div x-data="{ read: {{ $notification->read_at ? 'true' : 'false' }} }"
                                             x-effect="if (unreadCount === 0) read = true">
                                             <button type="button"
                                                 class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -169,10 +174,7 @@
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-
-                            <x-dropdown-link :href="route('logout')"
-                                onclick="event.preventDefault();
-                                                this.closest('form').submit();">
+                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
                                 {{ __('Log Out') }}
                             </x-dropdown-link>
                         </form>
@@ -215,9 +217,7 @@
                 <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <x-responsive-nav-link :href="route('logout')"
-                        onclick="event.preventDefault();
-                                        this.closest('form').submit();">
+                    <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
                         {{ __('Log Out') }}
                     </x-responsive-nav-link>
                 </form>

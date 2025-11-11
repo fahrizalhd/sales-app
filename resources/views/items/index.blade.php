@@ -95,12 +95,15 @@
                             <td class="px-6 py-4">
                                 @php
                                 $qty = $item->quantity;
+                                $min = config('filters.item.low_stock_threshold_min');
+                                $max = config('filters.item.low_stock_threshold_max');
+
                                 if ($qty === 0) {
                                     $status = 'out';
-                                } elseif ($qty <= 8 && $qty > 0) {
-                                    $status='low' ;
+                                } elseif ($qty >= $min && $qty <= $max) {
+                                    $status = 'low';
                                 } else {
-                                    $status='ok' ;
+                                    $status = 'ok';
                                 }
                                 @endphp
 

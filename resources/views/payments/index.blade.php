@@ -19,8 +19,7 @@
                             class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5">
                             <option value="">All Channel</option>
                             @foreach (\App\Enums\PaymentMethod::cases() as $method)
-                            <option value="{{ $method->value }}"
-                                @selected(request('filter.method')===$method->value)>
+                            <option value="{{ $method->value }}" @selected(request('filter.method')===$method->value)>
                                 {{ $method->label() }}
                             </option>
                             @endforeach
@@ -29,8 +28,7 @@
                             class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5">
                             <option value="">All Status</option>
                             @foreach (\App\Enums\PaymentStatus::cases() as $status)
-                            <option value="{{ $status->value }}"
-                                @selected(request('filter.status')===$status->value)>
+                            <option value="{{ $status->value }}" @selected(request('filter.status')===$status->value)>
                                 {{ $status->label() }}
                             </option>
                             @endforeach
@@ -80,7 +78,7 @@
                             <td class="px-6 py-4">
                                 <span class="{{ $badgeClasses }} text-xs font-medium px-2.5 py-1 rounded-full">{{ $status?->label() ?? 'Unknown' }}</span>
                             </td>
-                            <td class="px-6 py-4">{{ format_date_with_time($payment->created_at) }} - {{ $payment->createdBy->name }}</td>
+                            <td class="px-6 py-4">{{ format_date_with_time($payment->created_at) }} by {{ $payment->createdBy->name }}</td>
                             <td class="px-6 py-4">
                                 @if ($payment->status == \App\Enums\PaymentStatus::PENDING)
                                 <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-1 rounded-full">Not Approved Yet</span>

@@ -9,6 +9,8 @@
                 <form method="POST" action="{{ route('sales.update', $sale) }}" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
+                    <input type="hidden" name="redirect_to_payment" id="redirect_to_payment" value="0">
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <div>
@@ -124,15 +126,16 @@
                         </button>
                         @endif
                         @if (in_array($sale->status->value, \App\Models\Sale::canBePaid()))                  
-                        <a href="{{ route('sales.payments.create', $sale->id) }}"
+                        <button type="submit" onclick="document.getElementById('redirect_to_payment').value='1'"
                             class="inline-flex items-center gap-2 text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">
-                            <svg class="w-[20px] h-[20px]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-[20px] h-[20px]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                fill="currentColor" viewBox="0 0 24 24">
                                 <path fill-rule="evenodd" d="M7 6a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-2v-4a3 3 0 0 0-3-3H7V6Z" clip-rule="evenodd"/>
                                 <path fill-rule="evenodd" d="M2 11a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-7Zm7.5 1a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z" clip-rule="evenodd"/>
                                 <path d="M10.5 14.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/>
                             </svg>
                             Pay
-                        </a>
+                        </button>
                         @endif
                         <button type="submit"
                             class="inline-flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">

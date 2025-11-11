@@ -174,6 +174,11 @@ class SaleController extends Controller
             return $sale;
         });
 
+        if ($request->boolean('redirect_to_payment')) {
+            return redirect()->route('sales.payments.create', $sale->id)
+                ->with('success', "Sale: #{$sale->invoice_number} updated successfully. Proceed to payment.");
+        }
+
         return redirect()->route('sales.index')->with('success', "Sale: #{$sale->invoice_number} updated successfully.");
     }
 

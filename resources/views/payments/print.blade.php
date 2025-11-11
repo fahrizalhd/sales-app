@@ -42,7 +42,6 @@
 </head>
 
 <body onload="window.print()">
-
     <div class="text-center">
         <div class="bold">Maju Mundur</div>
         <div style="font-size: 10px; line-height: 1.2;">
@@ -66,7 +65,7 @@
                 <tr>
                     <td>Date</td>
                     <td>:</td>
-                    <td>{{ format_date_with_time($payment->created_at) }}</td>
+                    <td>{{ format_date_with_time($payment->sale->transaction_date) }}</td>
                 </tr>
                 <tr>
                     <td>Customer</td>
@@ -97,6 +96,11 @@
     </div>
 
     <div class="flex-between mt-2">
+        <span>Payment</span>
+        <span>{{ format_date_with_time($payment->created_at) }}</span>
+    </div>
+
+    <div class="flex-between mt-2">
         <span>Channel</span>
         <span>{{ $payment->method->label() }}</span>
     </div>
@@ -104,11 +108,10 @@
     <div class="line mt-4"></div>
 
     <div class="text-center" style="font-size: 11px; line-height: 1.4;">
-        Terima kasih atas pembelian Anda!<br>
-        Kepuasan Anda adalah prioritas kami.<br>
-        Sampai jumpa lagi.
+        Thank you for shopping with us.<br>
+        Your satisfaction is our priority!<br>
+        <div class="mt-1">See you again!</div>
     </div>
-
 </body>
 
 </html>
